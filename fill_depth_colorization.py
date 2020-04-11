@@ -12,6 +12,8 @@ import numpy as np
 from pypardiso import spsolve
 from PIL import Image
 from skimage.color import rgb2gray
+import os
+from scipy.interpolate import LinearNDInterpolator
 
 #
 # fill_depth_colorization.m
@@ -27,6 +29,38 @@ from skimage.color import rgb2gray
 #  imgDepth - HxW matrix, the depth image for the current frame in
 #       absolute (meters) space.
 #  alpha - a penalty value between 0 and 1 for the current depth values.
+def interpolate_depth(depth_map, validity_map, log_space=False):
+  '''
+  Interpolate sparse depth with barycentric coordinates
+  Args:
+    depth_map : np.float32
+      H x W depth map
+    validity_map : np.float32
+      H x W depth map
+    log_space : bool
+      if set then produce in log space
+  Returns:
+    np.float32 : H x W interpolated depth map
+  '''
+  assert depth_map.ndim == 2 and validity_map.ndim == 2
+  rows, cols = depth_map.shape
+  data_row_idx, data_col_idx = np.where(validity_map)
+  depth_values = depth_map[data_row_idx, data_col_idx]
+  # Perform linear interpolation in log space
+  if log_space:
+    depth_values = np.log(depth_values)
+  interpolator = LinearNDInterpolator(
+      # points=Delaunay(np.stack([data_row_idx, data_col_idx], axis=1).astype(np.float32)),
+      points=np.stack([data_row_idx, data_col_idx], axis=1),
+      values=depth_values,
+      fill_value=0 if not log_space else np.log(1e-3))
+  query_row_idx, query_col_idx = np.meshgrid(np.arange(rows), np.arange(cols), indexing='ij')
+  query_coord = np.stack([query_row_idx.ravel(), query_col_idx.ravel()], axis=1)
+  Z = interpolator(query_coord).reshape([rows, cols])
+  if log_space:
+    Z = np.exp(Z)
+    Z[Z < 1e-1] = 0.0
+  return Z
 
 def fill_depth_colorization(imgRgb=None, imgDepthInput=None, alpha=1):
 	imgIsNoise = imgDepthInput == 0

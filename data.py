@@ -5,6 +5,7 @@ from PIL import Image
 from zipfile import ZipFile
 from keras.utils import Sequence
 from augment import BasicPolicy
+from fill_depth_colorization import interpolate_depth
 
 def extract_zip(input_zip):
     input_zip=ZipFile(input_zip)
@@ -88,7 +89,12 @@ class VOID_BasicAugmentRGBSequence(Sequence):
             sample = self.dataset[index]
 
             x = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] )).reshape(480,640,3)/255,0,1)
-            y = np.asarray(np.asarray(Image.open( self.data_root+"/"+sample[1] )).reshape(480,640,1)/256.0*100.0) #convert to cm
+            y = np.asarray(np.asarray(Image.open( self.data_root+"/"+sample[1] )).reshape(480,640,1)/256.0)
+            y[y <= 0] = 0.0
+            v = y.astype(np.float32)
+            v[y > 0] = 1.0
+            v[y > 10] = 0.0
+            y = interpolate_depth(y, v)*100 # fill missing pixels and convert to cm
             y = DepthNorm(y, maxDepth=self.maxDepth)
 
             batch_x[i] = nyu_resize(x, 480)
@@ -123,8 +129,12 @@ class VOID_BasicRGBSequence(Sequence):
             sample = self.dataset[index]
 
             x = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] )).reshape(480,640,3)/255,0,1)
-            y = np.asarray(np.asarray(Image.open( self.data_root+"/"+sample[1] )).reshape(480,640,1)/256.0*100.0) #convert to cm
-            y = DepthNorm(y, maxDepth=self.maxDepth)
+            y = np.asarray(np.asarray(Image.open( self.data_root+"/"+sample[1] )).reshape(480,640,1)/256.0)
+            y[y <= 0] = 0.0
+            v = y.astype(np.float32)
+            v[y > 0] = 1.0
+            v[y > 10] = 0.0
+            y = interpolate_depth(y, v)*100 # fill missing pixels and convert to cm
             y = DepthNorm(y, maxDepth=self.maxDepth)
 
             batch_x[i] = nyu_resize(x, 480)
