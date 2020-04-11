@@ -11,6 +11,7 @@ import skimage
 import numpy as np
 from pypardiso import spsolve
 from PIL import Image
+from skimage.color import rgb2gray
 
 #
 # fill_depth_colorization.m
@@ -36,7 +37,7 @@ def fill_depth_colorization(imgRgb=None, imgDepthInput=None, alpha=1):
 	numPix = H * W
 	indsM = np.arange(numPix).reshape((W, H)).transpose()
 	knownValMask = (imgIsNoise == False).astype(int)
-	grayImg = skimage.color.rgb2gray(imgRgb)
+	grayImg = rgb2gray(imgRgb)
 	winRad = 1
 	len_ = 0
 	absImgNdx = 0
@@ -135,14 +136,14 @@ if __name__ == "__main__":
 	void_test_depth = list(line.strip() for line in open('/home/mikkel/void_150/test_ground_truth.txt'))
 
 	for i in range(0, len(void_train_rgb)):
-		x = np.clip(np.asarray(Image.open( "/home/mikkel/"+void_train_rgb[i] ))/255,0,1)
+	    x = np.clip(np.asarray(Image.open( "/home/mikkel/"+void_train_rgb[i] ))/255,0,1)
 	    y = np.asarray(fill_depth_colorization(imgRgb=x, imgDepthInput=np.asarray(Image.open( "/home/mikkel/"+void_train_depth[i] ))/256.0, alpha=1))
 	    save_depth(y, "/home/mikkel/"+void_train_depth[i])
 	    print("Processed train image", i, "out of", len(void_train_rgb))
 
 
 	for i in range(0, len(void_test_rgb)):
-		x = np.clip(np.asarray(Image.open( "/home/mikkel/"+void_test_rgb[i] ))/255,0,1)
+	    x = np.clip(np.asarray(Image.open( "/home/mikkel/"+void_test_rgb[i] ))/255,0,1)
 	    y = np.asarray(fill_depth_colorization(imgRgb=x, imgDepthInput=np.asarray(Image.open( "/home/mikkel/"+void_test_depth[i] ))/256.0, alpha=1))
 	    save_depth(y, "/home/mikkel/"+void_test_depth[i])
 	    print("Processed test image", i, "out of", len(void_test_rgb))
