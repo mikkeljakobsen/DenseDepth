@@ -41,6 +41,7 @@ model = create_model( existing=args.checkpoint )
 # Data loaders
 if args.data == 'nyu': train_generator, test_generator = get_nyu_train_test_data( args.bs )
 if args.data == 'unreal': train_generator, test_generator = get_unreal_train_test_data( args.bs )
+if args.data == 'void': train_generator, test_generator = get_void_train_test_data( args.bs )
 
 # Training session details
 runID = str(int(time.time())) + '-n' + str(len(train_generator)) + '-e' + str(args.epochs) + '-bs' + str(args.bs) + '-lr' + str(args.lr) + '-' + args.name
@@ -82,6 +83,7 @@ print('Ready for training!\n')
 callbacks = []
 if args.data == 'nyu': callbacks = get_nyu_callbacks(model, basemodel, train_generator, test_generator, load_test_data() if args.full else None , runPath)
 if args.data == 'unreal': callbacks = get_nyu_callbacks(model, basemodel, train_generator, test_generator, load_test_data() if args.full else None , runPath)
+if args.data == 'void': callbacks = get_nyu_callbacks(model, basemodel, train_generator, test_generator, load_test_data() if args.full else None , runPath)
 
 # Start training
 model.fit_generator(train_generator, callbacks=callbacks, validation_data=test_generator, epochs=args.epochs, shuffle=True)

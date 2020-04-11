@@ -38,6 +38,105 @@ def get_nyu_train_test_data(batch_size):
 
     return train_generator, test_generator
 
+def get_void_data(batch_size, void_data_path):
+    void_train_rgb = list(line.strip() for line in open(void_data_path+'/void_150/train_image.txt'))
+    void_train_depth = list(line.strip() for line in open(void_data_path+'/void_150/train_ground_truth.txt'))
+    void_test_rgb = list(line.strip() for line in open(void_data_path+'/void_150/test_image.txt'))
+    void_test_depth = list(line.strip() for line in open(void_data_path+'/void_150/test_ground_truth.txt'))
+
+    void_train = [[void_train_rgb[i], void_train_depth[i]] for i in range(0, len(void_train_rgb))]
+    void_test = [[void_test_rgb[i], void_test_depth[i]] for i in range(0, len(void_test_rgb))]
+    shape_rgb = (batch_size, 480, 640, 3)
+    shape_depth = (batch_size, 480, 640, 1)
+
+    return void_train, void_test, shape_rgb, shape_depth
+
+def get_void_train_test_data(batch_size, void_data_path='void_release'):
+    void_train, void_test, shape_rgb, shape_depth = get_void_data(batch_size, void_data_path)
+
+    train_generator = VOID_BasicAugmentRGBSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
+    test_generator = VOID_BasicRGBSequence(void_data_path, void_test, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
+
+    return train_generator, test_generator
+
+class VOID_BasicAugmentRGBSequence(Sequence):
+    def __init__(self, data_root, data_paths, batch_size, shape_rgb, shape_depth, is_flip=False, is_addnoise=False, is_erase=False):
+        self.data_root = data_root
+        self.dataset = data_paths
+        self.policy = BasicPolicy( color_change_ratio=0.50, mirror_ratio=0.50, flip_ratio=0.0 if not is_flip else 0.2, 
+                                    add_noise_peak=0 if not is_addnoise else 20, erase_ratio=-1.0 if not is_erase else 0.5)
+        self.batch_size = batch_size
+        self.shape_rgb = shape_rgb
+        self.shape_depth = shape_depth
+        self.maxDepth = 1000.0 #cm
+
+        from sklearn.utils import shuffle
+        self.dataset = shuffle(self.dataset, random_state=0)
+
+        self.N = len(self.dataset)
+
+    def __len__(self):
+        return int(np.ceil(self.N / float(self.batch_size)))
+
+    def __getitem__(self, idx, is_apply_policy=True):
+        batch_x, batch_y = np.zeros( self.shape_rgb ), np.zeros( self.shape_depth )
+
+        # Augmentation of RGB images
+        for i in range(batch_x.shape[0]):
+            index = min((idx * self.batch_size) + i, self.N-1)
+
+            sample = self.dataset[index]
+
+            x = np.clip(np.asarray(Image.open( BytesIO(self.data_root+"/"+sample[0]) )).reshape(480,640,3)/255,0,1)
+            y = np.asarray(Image.open( BytesIO(self.data_root+"/"+sample[1]) )).reshape(480,640,1)/256.0*100 #convert to cm
+            y[y <= 0] = 0.0
+            y[y >= self.maxDepth] = 0.0
+            y = DepthNorm(y, maxDepth=self.maxDepth)
+
+            batch_x[i] = x #nyu_resize(x, 480)
+            batch_y[i] = y #nyu_resize(y, 240)
+
+            if is_apply_policy: batch_x[i], batch_y[i] = self.policy(batch_x[i], batch_y[i])
+
+            # DEBUG:
+            #self.policy.debug_img(batch_x[i], np.clip(DepthNorm(batch_y[i])/maxDepth,0,1), idx, i)
+        #exit()
+
+        return batch_x, batch_y
+
+class VOID_BasicRGBSequence(Sequence):
+    def __init__(self, data_root, data_paths, batch_size,shape_rgb, shape_depth):
+        self.data_root = data_root
+        self.dataset = data_paths
+        self.batch_size = batch_size
+        self.N = len(self.dataset)
+        self.shape_rgb = shape_rgb
+        self.shape_depth = shape_depth
+        self.maxDepth = 1000.0 #cm
+
+    def __len__(self):
+        return int(np.ceil(self.N / float(self.batch_size)))
+
+    def __getitem__(self, idx):
+        batch_x, batch_y = np.zeros( self.shape_rgb ), np.zeros( self.shape_depth )
+        for i in range(self.batch_size):            
+            index = min((idx * self.batch_size) + i, self.N-1)
+
+            sample = self.dataset[index]
+
+            x = np.clip(np.asarray(Image.open( BytesIO(self.data[sample[0]]))).reshape(480,640,3)/255,0,1)
+            y = np.asarray(Image.open( BytesIO(self.data_root+"/"+sample[1]) )).reshape(480,640,1)/256.0*100 #convert to cm
+            y = DepthNorm(y, maxDepth=self.maxDepth)
+
+            batch_x[i] = x #nyu_resize(x, 480)
+            batch_y[i] = y #nyu_resize(y, 240)
+
+            # DEBUG:
+            #self.policy.debug_img(batch_x[i], np.clip(DepthNorm(batch_y[i])/maxDepth,0,1), idx, i)
+        #exit()
+
+        return batch_x, batch_y
+
 class NYU_BasicAugmentRGBSequence(Sequence):
     def __init__(self, data, dataset, batch_size, shape_rgb, shape_depth, is_flip=False, is_addnoise=False, is_erase=False):
         self.data = data
