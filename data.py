@@ -94,7 +94,7 @@ class VOID_BasicAugmentRGBSequence(Sequence):
             v = y.astype(np.float32)
             v[y > 0] = 1.0
             v[y > 10] = 0.0
-            y = interpolate_depth(y, v).reshape(480,640,1)*100 # fill missing pixels and convert to cm
+            y = np.clip(interpolate_depth(y, v).reshape(480,640,1)*100, 10.0, 1000.0) # fill missing pixels and convert to cm
             y = DepthNorm(y, maxDepth=self.maxDepth)
 
             batch_x[i] = nyu_resize(x, 480)
@@ -134,7 +134,7 @@ class VOID_BasicRGBSequence(Sequence):
             v = y.astype(np.float32)
             v[y > 0] = 1.0
             v[y > 10] = 0.0
-            y = interpolate_depth(y, v).reshape(480,640,1)*100 # fill missing pixels and convert to cm
+            y = np.clip(interpolate_depth(y, v).reshape(480,640,1)*100, 10.0, 1000.0) # fill missing pixels and convert to cm
             y = DepthNorm(y, maxDepth=self.maxDepth)
 
             batch_x[i] = nyu_resize(x, 480)
