@@ -5,6 +5,7 @@ from PIL import Image
 from zipfile import ZipFile
 from keras.utils import Sequence
 from augment import BasicPolicy
+from fill_depth_colorization import fill_depth_colorization
 
 def extract_zip(input_zip):
     input_zip=ZipFile(input_zip)
@@ -87,10 +88,10 @@ class VOID_BasicAugmentRGBSequence(Sequence):
 
             sample = self.dataset[index]
 
-            x = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] )).reshape(480,640,3)/255,0,1)
-            y = np.asarray(Image.open( self.data_root+"/"+sample[1] )).reshape(480,640,1)/256.0*100 #convert to cm
-            y[y <= 0] = 0.0
-            y[y >= self.maxDepth] = 0.0
+            x = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] ))/255,0,1)
+            y = np.asarray(fill_depth_colorization(imgRgb=x, imgDepthInput=np.asarray(Image.open( self.data_root+"/"+sample[1] ))/256.0, alpha=1))
+            x = x.reshape(480,640,3)
+            y = y.reshape(480,640,1)*100 #convert to cm
             y = DepthNorm(y, maxDepth=self.maxDepth)
 
             batch_x[i] = nyu_resize(x, 480)
@@ -124,8 +125,10 @@ class VOID_BasicRGBSequence(Sequence):
 
             sample = self.dataset[index]
 
-            x = np.clip(np.asarray(Image.open( self.data[sample[0]])).reshape(480,640,3)/255,0,1)
-            y = np.asarray(Image.open( self.data_root+"/"+sample[1] )).reshape(480,640,1)/256.0*100 #convert to cm
+            x = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] ))/255,0,1)
+            y = np.asarray(fill_depth_colorization(imgRgb=x, imgDepthInput=np.asarray(Image.open( self.data_root+"/"+sample[1] ))/256.0, alpha=1))
+            x = x.reshape(480,640,3)
+            y = y.reshape(480,640,1)*100 #convert to cm
             y = DepthNorm(y, maxDepth=self.maxDepth)
 
             batch_x[i] = nyu_resize(x, 480)
