@@ -47,11 +47,11 @@ def get_void_data(batch_size, void_data_path):
     void_train = [[void_train_rgb[i], void_train_depth[i]] for i in range(0, len(void_train_rgb))]
     void_test = [[void_test_rgb[i], void_test_depth[i]] for i in range(0, len(void_test_rgb))]
     shape_rgb = (batch_size, 480, 640, 3)
-    shape_depth = (batch_size, 480, 640, 1)
+    shape_depth = (batch_size, 240, 320, 1)
 
     return void_train, void_test, shape_rgb, shape_depth
 
-def get_void_train_test_data(batch_size, void_data_path='void_release'):
+def get_void_train_test_data(batch_size, void_data_path='/home/mikkel'):
     void_train, void_test, shape_rgb, shape_depth = get_void_data(batch_size, void_data_path)
 
     train_generator = VOID_BasicAugmentRGBSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
@@ -87,14 +87,14 @@ class VOID_BasicAugmentRGBSequence(Sequence):
 
             sample = self.dataset[index]
 
-            x = np.clip(np.asarray(Image.open( BytesIO(self.data_root+"/"+sample[0]) )).reshape(480,640,3)/255,0,1)
-            y = np.asarray(Image.open( BytesIO(self.data_root+"/"+sample[1]) )).reshape(480,640,1)/256.0*100 #convert to cm
+            x = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] )).reshape(480,640,3)/255,0,1)
+            y = np.asarray(Image.open( self.data_root+"/"+sample[1] )).reshape(480,640,1)/256.0*100 #convert to cm
             y[y <= 0] = 0.0
             y[y >= self.maxDepth] = 0.0
             y = DepthNorm(y, maxDepth=self.maxDepth)
 
-            batch_x[i] = x #nyu_resize(x, 480)
-            batch_y[i] = y #nyu_resize(y, 240)
+            batch_x[i] = nyu_resize(x, 480)
+            batch_y[i] = nyu_resize(y, 240)
 
             if is_apply_policy: batch_x[i], batch_y[i] = self.policy(batch_x[i], batch_y[i])
 
@@ -124,12 +124,12 @@ class VOID_BasicRGBSequence(Sequence):
 
             sample = self.dataset[index]
 
-            x = np.clip(np.asarray(Image.open( BytesIO(self.data[sample[0]]))).reshape(480,640,3)/255,0,1)
-            y = np.asarray(Image.open( BytesIO(self.data_root+"/"+sample[1]) )).reshape(480,640,1)/256.0*100 #convert to cm
+            x = np.clip(np.asarray(Image.open( self.data[sample[0]])).reshape(480,640,3)/255,0,1)
+            y = np.asarray(Image.open( self.data_root+"/"+sample[1] )).reshape(480,640,1)/256.0*100 #convert to cm
             y = DepthNorm(y, maxDepth=self.maxDepth)
 
-            batch_x[i] = x #nyu_resize(x, 480)
-            batch_y[i] = y #nyu_resize(y, 240)
+            batch_x[i] = nyu_resize(x, 480)
+            batch_y[i] = nyu_resize(y, 240)
 
             # DEBUG:
             #self.policy.debug_img(batch_x[i], np.clip(DepthNorm(batch_y[i])/maxDepth,0,1), idx, i)
