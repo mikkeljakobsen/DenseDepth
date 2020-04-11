@@ -164,20 +164,28 @@ def save_depth(z, path):
 	z.save(path)
 
 if __name__ == "__main__":
-	void_train_rgb = list(line.strip() for line in open('/home/mikkel/void_150/train_image.txt'))
 	void_train_depth = list(line.strip() for line in open('/home/mikkel/void_150/train_ground_truth.txt'))
-	void_test_rgb = list(line.strip() for line in open('/home/mikkel/void_150/test_image.txt'))
 	void_test_depth = list(line.strip() for line in open('/home/mikkel/void_150/test_ground_truth.txt'))
 
 	for i in range(0, len(void_train_rgb)):
-	    x = np.clip(np.asarray(Image.open( "/home/mikkel/"+void_train_rgb[i] ))/255,0,1)
-	    y = np.asarray(fill_depth_colorization(imgRgb=x, imgDepthInput=np.asarray(Image.open( "/home/mikkel/"+void_train_depth[i] ))/256.0, alpha=1))
+        y = np.asarray(np.asarray(Image.open( "/home/mikkel/"+void_train_depth[i] ))/256.0)
+        y[y <= 0] = 0.0
+        y[y > 10] = 0.0
+        v = y.astype(np.float32)
+        v[y > 0] = 1.0
+        v[y > 10] = 0.0
+        y = interpolate_depth(y, v) # fill missing pixels and convert to cm		
 	    save_depth(y, "/home/mikkel/"+void_train_depth[i])
 	    print("Processed train image", i, "out of", len(void_train_rgb))
 
 
 	for i in range(0, len(void_test_rgb)):
-	    x = np.clip(np.asarray(Image.open( "/home/mikkel/"+void_test_rgb[i] ))/255,0,1)
-	    y = np.asarray(fill_depth_colorization(imgRgb=x, imgDepthInput=np.asarray(Image.open( "/home/mikkel/"+void_test_depth[i] ))/256.0, alpha=1))
+        y = np.asarray(np.asarray(Image.open( "/home/mikkel/"+void_test_depth[i] ))/256.0)
+        y[y <= 0] = 0.0
+        y[y > 10] = 0.0
+        v = y.astype(np.float32)
+        v[y > 0] = 1.0
+        v[y > 10] = 0.0
+        y = interpolate_depth(y, v) # fill missing pixels and convert to cm		
 	    save_depth(y, "/home/mikkel/"+void_test_depth[i])
 	    print("Processed test image", i, "out of", len(void_test_rgb))

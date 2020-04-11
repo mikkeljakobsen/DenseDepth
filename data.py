@@ -90,11 +90,12 @@ class VOID_BasicAugmentRGBSequence(Sequence):
 
             x = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] )).reshape(480,640,3)/255,0,1)
             y = np.asarray(np.asarray(Image.open( self.data_root+"/"+sample[1] ))/256.0)
-            y[y <= 0] = 0.0
-            v = y.astype(np.float32)
-            v[y > 0] = 1.0
-            v[y > 10] = 0.0
-            y = np.clip(interpolate_depth(y, v).reshape(480,640,1)*100, 10.0, 1000.0) # fill missing pixels and convert to cm
+            #y[y <= 0] = 0.0
+            #v = y.astype(np.float32)
+            #v[y > 0] = 1.0
+            #v[y > 10] = 0.0
+            #y = np.clip(interpolate_depth(y, v).reshape(480,640,1)*100, 10.0, 1000.0) # fill missing pixels and convert to cm
+            y = np.clip(y.reshape(480,640,1)*100, 10.0, 1000.0) # fill missing pixels and convert to cm
             y = DepthNorm(y, maxDepth=self.maxDepth)
 
             batch_x[i] = nyu_resize(x, 480)
@@ -130,11 +131,12 @@ class VOID_BasicRGBSequence(Sequence):
 
             x = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] )).reshape(480,640,3)/255,0,1)
             y = np.asarray(np.asarray(Image.open( self.data_root+"/"+sample[1] ))/256.0)
-            y[y <= 0] = 0.0
-            v = y.astype(np.float32)
-            v[y > 0] = 1.0
-            v[y > 10] = 0.0
-            y = np.clip(interpolate_depth(y, v).reshape(480,640,1)*100, 10.0, 1000.0) # fill missing pixels and convert to cm
+            #y[y <= 0] = 0.0
+            #v = y.astype(np.float32)
+            #v[y > 0] = 1.0
+            #v[y > 10] = 0.0
+            #y = np.clip(interpolate_depth(y, v).reshape(480,640,1)*100, 10.0, 1000.0) # fill missing pixels and convert to cm
+            y = np.clip(y.reshape(480,640,1)*100, 10.0, 1000.0) # fill missing pixels and convert to cm
             y = DepthNorm(y, maxDepth=self.maxDepth)
 
             batch_x[i] = nyu_resize(x, 480)
