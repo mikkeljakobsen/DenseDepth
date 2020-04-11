@@ -116,17 +116,17 @@ def fill_depth_colorization(imgRgb=None, imgDepthInput=None, alpha=1):
 	return output
 
 def save_depth(z, path):
-  '''
-  Saves a depth map to a 16-bit PNG file
-  Args:
-    z : numpy
-      depth map
-    path : str
-      path to store depth map
-  '''
-  z = np.uint32(z*256.0)
-  z = Image.fromarray(z, mode='I')
-  z.save(path)
+	'''
+	Saves a depth map to a 16-bit PNG file
+	Args:
+	z : numpy
+	  depth map
+	path : str
+	  path to store depth map
+	'''
+	z = np.uint32(z*256.0)
+	z = Image.fromarray(z, mode='I')
+	z.save(path)
 
 if __name__ == "__main__":
 	void_train_rgb = list(line.strip() for line in open('/home/mikkel/void_150/train_image.txt'))
