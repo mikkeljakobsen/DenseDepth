@@ -19,12 +19,12 @@ import errno
 
 # Taken from https://stackoverflow.com/a/600612/119527
 def mkdir_p(path):
-    try:
-        os.makedirs(path)
-    except OSError as exc: # Python >2.5
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else: raise
+	try:
+		os.makedirs(path)
+	except OSError as exc: # Python >2.5
+		if exc.errno == errno.EEXIST and os.path.isdir(path):
+			pass
+		else: raise
 
 #
 # fill_depth_colorization.m
@@ -84,8 +84,8 @@ def save_depth(z, path):
 	'''
 	z = np.uint32(z*256.0)
 	z = Image.fromarray(z, mode='I')
-    if not os.path.isfile(path):
-        mkdir_p(os.path.dirname(path))
+	if not os.path.isfile(path):
+		mkdir_p(os.path.dirname(path))
 	z.save(path)
 
 if __name__ == "__main__":
