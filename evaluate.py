@@ -41,8 +41,5 @@ print('Testing...')
 e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True)
 #e = evaluate(model, rgb, depth, crop, batch_size=6)
 
-print("{:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}".format('a1', 'a2', 'a3', 'rel', 'rms', 'log_10'))
-print("{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(e[0],e[1],e[2],e[3],e[4],e[5]))
-
 end = time.time()
 print('\nTest time', end-start, 's')

@@ -112,9 +112,9 @@ def load_void_test_data(void_data_path='/home/mikkel'):
     inds = np.arange(len(depths)).tolist()
     depths = np.array([depths[i] for i in inds])
 
-    return {'rgb':images, 'depth':depths, 'crop': [20, 459, 24, 615]}
+    return {'rgb':images, 'depth':depths, 'crop': [0, 480, 0, 640]'''[20, 459, 24, 615]'''}
 
-def compute_errors(gt, pred, min_depth=0.1, max_depth=10.0):
+def compute_errors(pred, gt, min_depth=0.1, max_depth=10.0):
     v = (gt > min_depth) & (gt < max_depth)
     gt, pred = gt[v], pred[v]
     thresh = np.maximum((gt / pred), (pred / gt))
