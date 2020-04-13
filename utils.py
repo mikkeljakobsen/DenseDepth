@@ -99,7 +99,7 @@ def load_void_test_data(void_data_path='/home/mikkel'):
 
     images = []
     for rgb_path in void_test_rgb:
-        img = np.clip(np.asarray(Image.open( void_data_path+"/"+rgb_path )).reshape(480,640,3)/255,0,1)
+        img = np.asarray(Image.open( void_data_path+"/"+rgb_path )).reshape(480,640,3)
         images.append(img)
     inds = np.arange(len(images)).tolist()
     images = [images[i] for i in inds]
@@ -114,7 +114,9 @@ def load_void_test_data(void_data_path='/home/mikkel'):
 
     return {'rgb':images, 'depth':depths, 'crop': [20, 459, 24, 615]}
 
-def compute_errors(gt, pred):
+def compute_errors(gt, pred, min_depth=0.1, max_depth=10.0):
+    v = (gt > min_depth) & (gt < max_depth)
+    gt, pred = gt[v], pred[v]
     thresh = np.maximum((gt / pred), (pred / gt))
     a1 = (thresh < 1.25   ).mean()
     a2 = (thresh < 1.25 ** 2).mean()
