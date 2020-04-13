@@ -99,7 +99,7 @@ def load_void_test_data(void_data_path='/home/mikkel'):
 
     images = []
     for rgb_path in void_test_rgb:
-        img = np.clip(np.asarray(Image.open( rgb_path )).reshape(480,640,3)/255,0,1)
+        img = np.clip(np.asarray(Image.open( void_data_path+"/"+rgb_path )).reshape(480,640,3)/255,0,1)
         images.append(img)
     inds = np.arange(len(images)).tolist()
     images = [images[i] for i in inds]
@@ -107,7 +107,7 @@ def load_void_test_data(void_data_path='/home/mikkel'):
 
     depths = []
     for depth_path in void_test_depth:
-        img = np.asarray(np.asarray(Image.open( depth_path ))/256.0)
+        img = np.asarray(np.asarray(Image.open( void_data_path+"/"+depth_path ))/256.0)
         depths.append(img)
     inds = np.arange(len(depths)).tolist()
     depths = np.array([depths[i] for i in inds])
