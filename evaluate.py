@@ -2,7 +2,7 @@ import os
 import glob
 import time
 import argparse
-from utils import load_void_test_data
+from utils import load_void_test_data, load_test_data
 
 # Kerasa / TensorFlow
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '5'
@@ -11,10 +11,12 @@ from layers import BilinearUpSampling2D
 from loss import depth_loss_function
 from utils import predict, load_images, display_images, evaluate
 from matplotlib import pyplot as plt
+import numpy as np
 
 # Argument Parser
 parser = argparse.ArgumentParser(description='High Quality Monocular Depth Estimation via Transfer Learning')
 parser.add_argument('--model', default='nyu.h5', type=str, help='Trained Keras model file.')
+parser.add_argument('--dataset', default='nyu', type=str, help='Test dataset.')
 args = parser.parse_args()
 
 # Custom object needed for inference and training
@@ -26,14 +28,11 @@ model = load_model(args.model, custom_objects=custom_objects, compile=False)
 
 # Load test data
 print('Loading test data...', end='')
-import numpy as np
-#from data import extract_zip
-#data = extract_zip('nyu_test.zip')
-#from io import BytesIO
-#rgb = np.load(BytesIO(data['eigen_test_rgb.npy']))
-#depth = np.load(BytesIO(data['eigen_test_depth.npy']))
-#crop = np.load(BytesIO(data['eigen_test_crop.npy']))
-test_set = load_void_test_data()
+test_set = {}
+if(args.dataset == 'nyu'):
+	test_set = load_test_data()
+else:
+	test_set = load_void_test_data()
 print('Test data loaded.\n')
 
 start = time.time()
