@@ -42,15 +42,15 @@ def get_nyu_train_test_data(batch_size):
 def get_void_data(batch_size, void_data_path):
     void_train_rgb = list(line.strip() for line in open(void_data_path+'/void_150/train_image.txt'))
     void_train_depth = list(line.strip() for line in open(void_data_path+'/void_150/train_ground_truth.txt'))
-    void_test_rgb = list(line.strip() for line in open(void_data_path+'/void_150/test_image.txt'))
-    void_test_depth = list(line.strip() for line in open(void_data_path+'/void_150/test_ground_truth.txt'))
+    #void_test_rgb = list(line.strip() for line in open(void_data_path+'/void_150/test_image.txt'))
+    #void_test_depth = list(line.strip() for line in open(void_data_path+'/void_150/test_ground_truth.txt'))
 
     void_train = [[void_train_rgb[i], void_train_depth[i]] for i in range(0, len(void_train_rgb))]
-    void_test = [[void_test_rgb[i], void_test_depth[i]] for i in range(0, len(void_test_rgb))]
+    #void_test = [[void_test_rgb[i], void_test_depth[i]] for i in range(0, len(void_test_rgb))]
     shape_rgb = (batch_size, 480, 640, 3)
     shape_depth = (batch_size, 240, 320, 1)
 
-    return void_train, void_test, shape_rgb, shape_depth
+    return void_train[:48414], void_train[48414:], shape_rgb, shape_depth
 
 def get_void_train_test_data(batch_size, void_data_path='/home/mikkel'):
     void_train, void_test, shape_rgb, shape_depth = get_void_data(batch_size, void_data_path)

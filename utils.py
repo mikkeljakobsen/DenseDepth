@@ -93,6 +93,27 @@ def load_test_data(test_data_zip_file='nyu_test.zip'):
     print('Test data loaded.\n')
     return {'rgb':rgb, 'depth':depth, 'crop':crop}
 
+def load_void_test_data(void_data_path='/home/mikkel')
+    void_test_rgb = list(line.strip() for line in open(void_data_path+'/void_150/test_image.txt'))
+    void_test_depth = list(line.strip() for line in open(void_data_path+'/void_150/test_ground_truth.txt'))
+
+    images = []
+    for rgb_path in void_test_rgb:
+        img = np.clip(np.asarray(Image.open( rgb_path )).reshape(480,640,3)/255,0,1)
+        images.append(img)
+    inds = np.arange(len(images)).tolist()
+    images = [images[i] for i in inds]
+    images = np.stack(images).astype(np.float32)
+
+    depths = []
+    for depth_path in void_test_depth:
+        img = np.asarray(np.asarray(Image.open( depth_path ))/256.0)
+        depths.append(img)
+    inds = np.arange(len(depths)).tolist()
+    depths = np.array([depths[i] for i in inds])
+
+    return {'rgb':images, 'depth':depths, 'crop': [20, 459, 24, 615]}
+
 def compute_errors(gt, pred):
     thresh = np.maximum((gt / pred), (pred / gt))
     a1 = (thresh < 1.25   ).mean()
