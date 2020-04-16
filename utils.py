@@ -123,7 +123,7 @@ def load_void_test_data(void_data_path='/home/mikkel/data/void_release', use_spa
     interp_depths = []
     if use_sparse_depth:
         void_test_interp_depth = list(line.strip() for line in open('/home/mikkel/data/void_sparse/void_150/test_interp_depth.txt'))
-        for interp_depth_path in void_test_depth:
+        for interp_depth_path in void_test_interp_depth:
             img = np.asarray(np.asarray(Image.open( interp_depth_path ))/256.0)
             interp_depths.append(img)
         inds = np.arange(len(interp_depths)).tolist()
@@ -143,7 +143,7 @@ def compute_errors(gt, pred, min_depth=0.1, max_depth=10.0):
     log_10 = (np.abs(np.log10(gt)-np.log10(pred))).mean()
     return a1, a2, a3, abs_rel, rmse, log_10
 
-def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_scaling=False, interp_depth=None):
+def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_scaling=False, interp_depth):
     N = len(rgb)
 
     bs = batch_size
