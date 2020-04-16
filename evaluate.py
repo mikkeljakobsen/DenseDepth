@@ -34,7 +34,7 @@ test_set = {}
 if(args.dataset == 'nyu'):
 	test_set = load_test_data()
 else:
-	test_set = load_void_test_data()
+	test_set = load_void_test_data(use_sparse_depth=args.use_sparse_depth)
 print('Test data loaded.\n')
 
 start = time.time()

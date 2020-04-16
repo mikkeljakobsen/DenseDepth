@@ -123,7 +123,7 @@ def load_void_test_data(void_data_path='/home/mikkel/data/void_release', use_spa
     interp_depths = []
     if use_sparse_depth:
         void_test_interp_depth = list(line.strip() for line in open('/home/mikkel/data/void_sparse/void_150/test_interp_depth.txt'))
-        for interp_depth_path in void_test_interp_depth:
+        for interp_depth_path in void_test_depth:
             img = np.asarray(np.asarray(Image.open( interp_depth_path ))/256.0)
             interp_depths.append(img)
         inds = np.arange(len(interp_depths)).tolist()
@@ -143,7 +143,7 @@ def compute_errors(gt, pred, min_depth=0.1, max_depth=10.0):
     log_10 = (np.abs(np.log10(gt)-np.log10(pred))).mean()
     return a1, a2, a3, abs_rel, rmse, log_10
 
-def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_scaling=False, interp_depth):
+def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_scaling=False, interp_depth=None):
     N = len(rgb)
 
     bs = batch_size
@@ -167,9 +167,10 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
         pred_y = pred_y[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
         pred_y_flip = pred_y_flip[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
 
-        #if interp_depth is not None:
-        imu_depth = interp_depth[(i)*bs:(i+1)*bs,:,:]
-        imu_depth = imu_depth[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
+        imu_depth = []
+        if interp_depth is not None:
+            imu_depth = interp_depth[(i)*bs:(i+1)*bs,:,:]
+            imu_depth = imu_depth[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
         
         # Compute errors per image in batch
         for j in range(len(true_y)):
