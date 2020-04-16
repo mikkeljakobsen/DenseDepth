@@ -93,7 +93,7 @@ def load_test_data(test_data_zip_file='nyu_test.zip'):
     print('Test data loaded.\n')
     return {'rgb':rgb, 'depth':depth, 'crop':crop}
 
-def load_void_test_data(void_data_path='/home/mikkel'):
+def load_void_test_data(void_data_path='/home/mikkel/void_150_test'):
     void_test_rgb = list(line.strip() for line in open(void_data_path+'/void_150/test_image.txt'))
     void_test_depth = list(line.strip() for line in open(void_data_path+'/void_150/test_ground_truth.txt'))
 
