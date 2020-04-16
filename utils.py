@@ -123,7 +123,7 @@ def load_void_test_data(void_data_path='/home/mikkel/data/void_release', use_spa
     interp_depths = []
     if use_sparse_depth:
         void_test_interp_depth = list(line.strip() for line in open('/home/mikkel/data/void_sparse/void_150/void_test_interp_depth_150.txt'))
-        for interp_depth_path in void_test_depth:
+        for interp_depth_path in void_test_interp_depth:
             img = np.asarray(np.asarray(Image.open( interp_depth_path ))/256.0)
             interp_depths.append(img)
         inds = np.arange(len(interp_depths)).tolist()
