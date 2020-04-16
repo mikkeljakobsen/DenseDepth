@@ -154,10 +154,7 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
     
     for i in range(N//bs):    
         x = rgb[(i)*bs:(i+1)*bs,:,:,:]
-        imu_depth=interp_depth
-        if imu_depth is not None:
-            imu_depth = interp_depth[(i)*bs:(i+1)*bs,:,:]
-            imu_depth = imu_depth[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
+
         # Compute results
         true_y = depth[(i)*bs:(i+1)*bs,:,:]
         pred_y = scale_up(2, predict(model, x/255, minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
@@ -169,6 +166,11 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
         true_y = true_y[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
         pred_y = pred_y[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
         pred_y_flip = pred_y_flip[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
+
+        imu_depth = true_y
+        if interp_depth is not None:
+            imu_depth = interp_depth[(i)*bs:(i+1)*bs,:,:]
+            imu_depth = imu_depth[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
         
         # Compute errors per image in batch
         for j in range(len(true_y)):
