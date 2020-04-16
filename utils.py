@@ -81,6 +81,14 @@ def save_images(filename, outputs, inputs=None, gt=None, is_colormap=True, is_re
     im = Image.fromarray(np.uint8(montage*255))
     im.save(filename)
 
+def compute_scaling_factor(gt, pr, min_depth=0.1, max_depth=10.0):
+    gt = np.array(gt, dtype=np.float64).reshape(-1)
+    pr = np.array(pr, dtype=np.float64).reshape(-1)
+
+    # only use valid depth values
+    v = (gt > min_depth) & (gt < max_depth)
+    return np.median(gt[v] / pr[v])
+
 def load_test_data(test_data_zip_file='nyu_test.zip'):
     print('Loading test data...', end='')
     import numpy as np
@@ -114,7 +122,7 @@ def load_void_test_data(void_data_path='/home/mikkel/void_150_test'):
 
     return {'rgb':images, 'depth':depths, 'crop': [0, 480, 0, 640]} #[20, 459, 24, 615]
 
-def compute_errors(pred, gt, min_depth=0.1, max_depth=10.0):
+def compute_errors(gt, pred, min_depth=0.1, max_depth=10.0):
     v = (gt > min_depth) & (gt < max_depth)
     gt, pred = gt[v], pred[v]
     thresh = np.maximum((gt / pred), (pred / gt))
@@ -127,7 +135,7 @@ def compute_errors(pred, gt, min_depth=0.1, max_depth=10.0):
     log_10 = (np.abs(np.log10(gt)-np.log10(pred))).mean()
     return a1, a2, a3, abs_rel, rmse, log_10
 
-def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False):
+def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_scaling=False):
     N = len(rgb)
 
     bs = batch_size
@@ -152,13 +160,17 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False):
         
         # Compute errors per image in batch
         for j in range(len(true_y)):
-            predictions.append(   (0.5 * pred_y[j]) + (0.5 * np.fliplr(pred_y_flip[j]))   )
+            prediction = (0.5 * pred_y[j]) + (0.5 * np.fliplr(pred_y_flip[j]))
+            if use_median_scaling:
+                predictions.append(prediction*compute_scaling_factor(true_y[j], prediction))
+            else:
+                predictions.append(prediction)
             testSetDepths.append(   true_y[j]   )
 
     predictions = np.stack(predictions, axis=0)
     testSetDepths = np.stack(testSetDepths, axis=0)
 
-    e = compute_errors(predictions, testSetDepths)
+    e = compute_errors(testSetDepths, predictions)
 
     if verbose:
         print("{:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}".format('a1', 'a2', 'a3', 'rel', 'rms', 'log_10'))
