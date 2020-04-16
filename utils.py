@@ -101,7 +101,7 @@ def load_test_data(test_data_zip_file='nyu_test.zip'):
     print('Test data loaded.\n')
     return {'rgb':rgb, 'depth':depth, 'crop':crop}
 
-def load_void_test_data(void_data_path='/home/mikkel/void_150_test'):
+def load_void_test_data(void_data_path='/home/mikkel/data/void_release', use_sparse_depth=False):
     void_test_rgb = list(line.strip() for line in open(void_data_path+'/void_150/test_image.txt'))
     void_test_depth = list(line.strip() for line in open(void_data_path+'/void_150/test_ground_truth.txt'))
 
@@ -120,7 +120,15 @@ def load_void_test_data(void_data_path='/home/mikkel/void_150_test'):
     inds = np.arange(len(depths)).tolist()
     depths = np.array([depths[i] for i in inds])
 
-    return {'rgb':images, 'depth':depths, 'crop': [0, 480, 0, 640]} #[20, 459, 24, 615]
+    interp_depths = []
+    if use_sparse_depth:
+        void_test_interp_depth = list(line.strip() for line in open('/home/mikkel/data/void_sparse/void_150/test_interp_depth.txt'))
+        for interp_depth_path in void_test_depth:
+            img = np.asarray(np.asarray(Image.open( interp_depth_path ))/256.0)
+            interp_depths.append(img)
+        inds = np.arange(len(interp_depths)).tolist()
+        interp_depths = np.array([interp_depths[i] for i in inds])
+    return {'rgb':images, 'depth':depths, 'interp_depth':interp_depths, 'crop': [20, 459, 24, 615]}#[0, 480, 0, 640]}
 
 def compute_errors(gt, pred, min_depth=0.1, max_depth=10.0):
     v = (gt > min_depth) & (gt < max_depth)
@@ -135,17 +143,21 @@ def compute_errors(gt, pred, min_depth=0.1, max_depth=10.0):
     log_10 = (np.abs(np.log10(gt)-np.log10(pred))).mean()
     return a1, a2, a3, abs_rel, rmse, log_10
 
-def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_scaling=False):
+def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_scaling=False, interp_depth=None):
     N = len(rgb)
 
     bs = batch_size
 
     predictions = []
     testSetDepths = []
+    imu_depths = []
     
     for i in range(N//bs):    
         x = rgb[(i)*bs:(i+1)*bs,:,:,:]
-        
+        imu_depth=interp_depth
+        if imu_depth is not None:
+            imu_depth = interp_depth[(i)*bs:(i+1)*bs,:,:]
+            imu_depth = imu_depth[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
         # Compute results
         true_y = depth[(i)*bs:(i+1)*bs,:,:]
         pred_y = scale_up(2, predict(model, x/255, minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
@@ -162,7 +174,10 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
         for j in range(len(true_y)):
             prediction = (0.5 * pred_y[j]) + (0.5 * np.fliplr(pred_y_flip[j]))
             if use_median_scaling:
-                predictions.append(prediction*compute_scaling_factor(true_y[j], prediction))
+                if interp_depth is not None:
+                    predictions.append(prediction*compute_scaling_factor(imu_depth[j], prediction))
+                else:
+                    predictions.append(prediction*compute_scaling_factor(true_y[j], prediction))
             else:
                 predictions.append(prediction)
             testSetDepths.append(   true_y[j]   )
