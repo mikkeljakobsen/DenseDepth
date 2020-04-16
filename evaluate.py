@@ -38,7 +38,7 @@ print('Test data loaded.\n')
 
 start = time.time()
 print('Testing...')
-if use_median_scaling:
+if args.use_median_scaling:
 	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=True)
 else:
 
