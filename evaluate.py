@@ -2,7 +2,7 @@ import os
 import glob
 import time
 import argparse
-from utils import load_void_test_data, load_test_data
+from utils import load_void_imu_test_data, load_void_test_data, load_test_data
 
 # Kerasa / TensorFlow
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '5'
