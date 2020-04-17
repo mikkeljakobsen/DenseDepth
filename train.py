@@ -36,7 +36,7 @@ else:
     print('Will use ' + str(args.gpus) + ' GPUs.')
 
 # Create the model
-model = create_model( existing=args.checkpoint , data=args.data)
+model = create_model( existing=args.checkpoint)
 
 # Data loaders
 if args.data == 'nyu': train_generator, test_generator = get_nyu_train_test_data( args.bs )
