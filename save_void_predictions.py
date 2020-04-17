@@ -44,7 +44,7 @@ predictions = []
 for i in range(N//bs):
 	x = []
 	rgb_paths = void_rgb_list[(i)*bs:(i+1)*bs]
-	for rgb_path in (void_train_rgb+void_test_rgb):
+	for rgb_path in rgb_paths:
 		img = np.asarray(Image.open( rgb_path )).reshape(480,640,3)
 		x.append(img)
 	inds = np.arange(len(x)).tolist()
