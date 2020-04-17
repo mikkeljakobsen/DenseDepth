@@ -56,8 +56,8 @@ def get_void_train_test_data(batch_size, void_data_path='/home/mikkel/data/void_
 
 def get_void_depth_completion_train_test_data(batch_size, void_data_path='/home/mikkel/data/void_release'):
     void_train, void_test, shape_rgb, shape_depth = get_void_data(batch_size, void_data_path)
-    train_generator = VOID_ImuAidedRGBSequence(void_data_path, '/home/mikkel/data/void_sparse', void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
-    test_generator = VOID_ImuAidedRGBSequence(void_data_path, '/home/mikkel/data/void_sparse', void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
+    train_generator = VOID_ImuAidedRGBSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
+    test_generator = VOID_ImuAidedRGBSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
     return train_generator, test_generator
 
 class VOID_BasicAugmentRGBSequence(Sequence):
@@ -149,9 +149,8 @@ class VOID_BasicRGBSequence(Sequence):
         return batch_x, batch_y
 
 class VOID_ImuAidedRGBSequence(Sequence):
-    def __init__(self, data_root, data_root_sparse, data_paths, batch_size,shape_rgb, shape_depth):
+    def __init__(self, data_root, data_paths, batch_size,shape_rgb, shape_depth):
         self.data_root = data_root
-        self.data_root_sparse = data_root_sparse
         self.dataset = data_paths
         self.batch_size = batch_size
         self.N = len(self.dataset)
@@ -171,7 +170,7 @@ class VOID_ImuAidedRGBSequence(Sequence):
 
             x1 = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] ).convert('L')).reshape(480,640)/255,0,1)
             x2 = np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'prediction') ))/256.0/10.0,0,1).reshape(480,640)
-            x3 = np.clip(np.asarray(Image.open( os.path.join(self.data_root_sparse, sample[0]).replace('image', 'interp_depth') ))/256.0/10.0,0,1).reshape(480,640)
+            x3 = np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0/10.0,0,1).reshape(480,640)
 
             y = np.asarray(np.asarray(Image.open( self.data_root+"/"+sample[1] ))/256.0)
             #y[y <= 0] = 0.0

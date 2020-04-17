@@ -123,11 +123,33 @@ def load_void_test_data(void_data_path='/home/mikkel/data/void_release', use_spa
     interp_depths = []
     if use_sparse_depth:
         for interp_depth_path in void_test_depth:
-            img = np.asarray(Image.open( os.path.join("/home/mikkel/data/void_sparse/", interp_depth_path).replace('ground_truth', 'interp_depth') ))/256.0
+            img = np.asarray(Image.open( os.path.join(void_data_path, interp_depth_path).replace('ground_truth', 'interp_depth') ))/256.0
             interp_depths.append(img)
         inds = np.arange(len(interp_depths)).tolist()
         interp_depths = np.array([interp_depths[i] for i in inds])
     return {'rgb':images, 'depth':depths, 'interp_depth':interp_depths, 'crop': [20, 459, 24, 615]}#[0, 480, 0, 640]}
+
+def load_void_imu_test_data(void_data_path='/home/mikkel/data/void_release', use_sparse_depth=False):
+    void_test_rgb = list(line.strip() for line in open(void_data_path+'/void_150/test_image.txt'))
+    void_test_depth = list(line.strip() for line in open(void_data_path+'/void_150/test_ground_truth.txt'))
+
+    images = []
+    for rgb_path in void_test_rgb:
+        x1 = np.asarray(Image.open( os.path.join(void_data_path, rgb_path)).convert('L')).reshape(480,640)
+        x2 = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'prediction')))/256.0/10.0,0,1)*255.reshape(480,640)
+        x3 = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth')))/256.0/10.0,0,1)*255.reshape(480,640)
+        images.append(np.stack([x1, x2, x3], axis=-1))
+    inds = np.arange(len(images)).tolist()
+    images = [images[i] for i in inds]
+    images = np.stack(images).astype(np.float32)
+
+    depths = []
+    for depth_path in void_test_depth:
+        img = np.asarray(Image.open( void_data_path+"/"+depth_path ))/256.0
+        depths.append(img)
+    inds = np.arange(len(depths)).tolist()
+    depths = np.array([depths[i] for i in inds])   
+    return {'rgb':images, 'depth':depths, 'crop': [20, 459, 24, 615]}#[0, 480, 0, 640]}
 
 def compute_errors(gt, pred, min_depth=0.1, max_depth=10.0):
     v = (gt > min_depth) & (gt < max_depth)

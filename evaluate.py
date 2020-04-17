@@ -33,6 +33,8 @@ print('Loading test data...', end='')
 test_set = {}
 if(args.dataset == 'nyu'):
 	test_set = load_test_data()
+elif(args.dataset == 'void-imu'):
+	test_set = load_void_imu_test_data()
 else:
 	test_set = load_void_test_data(use_sparse_depth=args.use_sparse_depth)
 print('Test data loaded.\n')
