@@ -63,8 +63,8 @@ for i in range(N//bs):
 		prediction = (0.5 * pred_y[j]) + (0.5 * np.fliplr(pred_y_flip[j]))
 		z = np.uint32(prediction*256.0)
 		z = Image.fromarray(z, mode='I')
-		if not os.path.exists(path):
-			os.makedirs(path)
+		if not os.path.exists(os.path.dirname(path)):
+			os.makedirs(os.path.dirname(path))
 		z.save(path)
 	print('Saved', i*bs, 'out of', N)
 
