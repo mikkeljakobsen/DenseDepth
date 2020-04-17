@@ -45,21 +45,21 @@ for i in range(N//bs):
 	x = []
 	rgb_paths = void_rgb_list[(i)*bs:(i+1)*bs]
 	for rgb_path in (void_train_rgb+void_test_rgb):
-	    img = np.asarray(Image.open( rgb_path )).reshape(480,640,3)
-	    x.append(img)
+		img = np.asarray(Image.open( rgb_path )).reshape(480,640,3)
+		x.append(img)
 	inds = np.arange(len(x)).tolist()
 	x = [x[i] for i in inds]
 	x = np.stack(x).astype(np.float32)
 
-    # Compute results
-    pred_y = scale_up(2, predict(model, x/255, minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
-    
-    # Test time augmentation: mirror image estimate
-    pred_y_flip = scale_up(2, predict(model, x[...,::-1,:]/255, minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
-    
-    # Compute errors per image in batch
-    for j in range(len(x)):
-    	path = rgb_paths[j].replace('image', 'prediction')
+	# Compute results
+	pred_y = scale_up(2, predict(model, x/255, minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
+
+	# Test time augmentation: mirror image estimate
+pred_y_flip = scale_up(2, predict(model, x[...,::-1,:]/255, minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
+	
+	# Compute errors per image in batch
+	for j in range(len(x)):
+		path = rgb_paths[j].replace('image', 'prediction')
 		prediction = (0.5 * pred_y[j]) + (0.5 * np.fliplr(pred_y_flip[j]))
 		z = np.uint32(prediction*256.0)
 		z = Image.fromarray(z, mode='I')
