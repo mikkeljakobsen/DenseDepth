@@ -5,6 +5,7 @@ from PIL import Image
 from zipfile import ZipFile
 from keras.utils import Sequence
 from augment import BasicPolicy
+import os
 from fill_depth_colorization import interpolate_depth
 
 def extract_zip(input_zip):
