@@ -115,7 +115,7 @@ def load_void_test_data(void_data_path='/home/mikkel/data/void_release', use_spa
 
     depths = []
     for depth_path in void_test_depth:
-        img = np.asarray(np.asarray(Image.open( void_data_path+"/"+depth_path ))/256.0)
+        img = np.asarray(Image.open( void_data_path+"/"+depth_path ))/256.0
         depths.append(img)
     inds = np.arange(len(depths)).tolist()
     depths = np.array([depths[i] for i in inds])
@@ -123,7 +123,7 @@ def load_void_test_data(void_data_path='/home/mikkel/data/void_release', use_spa
     interp_depths = []
     if use_sparse_depth:
         for interp_depth_path in void_test_depth:
-            img = np.asarray(np.asarray(Image.open( os.path.join("/home/mikkel/data/void_sparse/", interp_depth_path).replace('ground_truth', 'interp_depth') ))/256.0)
+            img = np.asarray(Image.open( os.path.join("/home/mikkel/data/void_sparse/", interp_depth_path).replace('ground_truth', 'interp_depth') ))/256.0
             interp_depths.append(img)
         inds = np.arange(len(interp_depths)).tolist()
         interp_depths = np.array([interp_depths[i] for i in inds])

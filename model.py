@@ -6,16 +6,20 @@ from keras.layers import Input, InputLayer, Conv2D, Activation, LeakyReLU, Conca
 from layers import BilinearUpSampling2D
 from loss import depth_loss_function
 
-def create_model(existing='', is_twohundred=False, is_halffeatures=True):
+def create_model(existing='', is_twohundred=False, is_halffeatures=True, data=''):
         
     if len(existing) == 0:
         print('Loading base model (DenseNet)..')
 
         # Encoder Layers
+        extra_channel = 0
+        if data == 'void-imu':
+            extra_channel = 1
+
         if is_twohundred:
-            base_model = applications.DenseNet201(input_shape=(None, None, 3), include_top=False)
+            base_model = applications.DenseNet201(input_shape=(None, None, 3+extra_channel), include_top=False)
         else:
-            base_model = applications.DenseNet169(input_shape=(None, None, 3), include_top=False)
+            base_model = applications.DenseNet169(input_shape=(None, None, 3+extra_channel), include_top=False)
 
         print('Base model loaded.')
 
@@ -52,6 +56,8 @@ def create_model(existing='', is_twohundred=False, is_halffeatures=True):
 
         # Extract depths (final layer)
         conv3 = Conv2D(filters=1, kernel_size=3, strides=1, padding='same', name='conv3')(decoder)
+
+
 
         # Create the model
         model = Model(inputs=base_model.input, outputs=conv3)
