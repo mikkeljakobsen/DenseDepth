@@ -137,8 +137,8 @@ def load_void_imu_test_data(void_data_path='/home/mikkel/data/void_release'):
     images = []
     for rgb_path in void_test_rgb:
         x1 = np.asarray(Image.open( os.path.join(void_data_path, rgb_path)).convert('L')).reshape(480,640)
-        x3 = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth')))/256.0/10.0,0,1)*255.reshape(480,640)
-        x2 = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'prediction')))/256.0/10.0,0,1)*255.reshape(480,640)
+        x2 = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'prediction')))/256.0/10.0,0,1).reshape(480,640)*255
+        x3 = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth')))/256.0/10.0,0,1).reshape(480,640)*255
         images.append(np.stack([x1, x2, x3], axis=-1))
     inds = np.arange(len(images)).tolist()
     images = [images[i] for i in inds]
