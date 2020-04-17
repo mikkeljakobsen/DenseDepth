@@ -130,7 +130,7 @@ def load_void_test_data(void_data_path='/home/mikkel/data/void_release', use_spa
         interp_depths = np.array([interp_depths[i] for i in inds])
     return {'rgb':images, 'depth':depths, 'interp_depth':interp_depths, 'crop': [20, 459, 24, 615]}#[0, 480, 0, 640]}
 
-def load_void_imu_test_data(void_data_path='/home/mikkel/data/void_release', use_sparse_depth=False):
+def load_void_imu_test_data(void_data_path='/home/mikkel/data/void_release'):
     void_test_rgb = list(line.strip() for line in open(void_data_path+'/void_150/test_image.txt'))
     void_test_depth = list(line.strip() for line in open(void_data_path+'/void_150/test_ground_truth.txt'))
 
