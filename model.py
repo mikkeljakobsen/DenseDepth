@@ -95,7 +95,7 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
             layer.name = layer.name + str("_sz")
 
         # Starting point for decoder
-        encoder_output = concatenate([base_model_sz.output, base_model.output], axis=-1)
+        encoder_output = concatenate([base_model.output, base_model_sz.output], axis=-1)
         base_model_output_shape = encoder_output.shape
 
         #base_model_output_shape = base_model.layers[-1].output.shape
@@ -111,7 +111,7 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
         # Define upsampling layer
         def upproject(tensor, filters, name, concat_with):
             up_i = BilinearUpSampling2D((2, 2), name=name+'_upsampling2d')(tensor)
-            up_i = Concatenate(name=name+'_concat')([up_i, base_model_sz.get_layer(concat_with+str("_sz")).output, base_model.get_layer(concat_with).output]) # Skip connection
+            up_i = Concatenate(name=name+'_concat')([up_i, base_model.get_layer(concat_with).output, base_model_sz.get_layer(concat_with+str("_sz")).output]) # Skip connection
             up_i = Conv2D(filters=filters, kernel_size=3, strides=1, padding='same', name=name+'_convA')(up_i)
             up_i = LeakyReLU(alpha=0.2)(up_i)
             up_i = Conv2D(filters=filters, kernel_size=3, strides=1, padding='same', name=name+'_convB')(up_i)
@@ -130,7 +130,7 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
         conv3 = Conv2D(filters=1, kernel_size=3, strides=1, padding='same', name='conv3')(decoder)
 
         # Create the model
-        model = Model(inputs=[base_model_sz.input, base_model.input], outputs=conv3)
+        model = Model(inputs=[base_model.input, base_model_sz.input], outputs=conv3)
     else:
         # Load model from file
         if not existing.endswith('.h5'):
