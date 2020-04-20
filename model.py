@@ -82,8 +82,11 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
         print('Base model loaded.')
 
         # Starting point for decoder
-        base_model_output_shape = base_model.layers[-1].output.shape
-        base_model_output_shape_sz = base_model_sz.layers[-1].output.shape
+        encoder_output = Concatenate([base_model_sz.output, base_model.output], axis=-1)
+        base_model_output_shape = encoder_output.compute_output_shape()
+
+        #base_model_output_shape = base_model.layers[-1].output.shape
+        #base_model_output_shape_sz = base_model_sz.layers[-1].output.shape
 
         # Layer freezing?
         for layer in base_model.layers: layer.trainable = True
@@ -91,11 +94,9 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
 
         # Starting number of decoder filters
         if is_halffeatures:
-            decode_filters = int(int(base_model_output_shape[-1]+base_model_output_shape_sz[-1])/2)
-            decode_filters_sz = int(int(base_model_output_shape_sz[-1]+base_model_output_shape_sz[-1])/2)
+            decode_filters = int(int(base_model_output_shape[-1])/2)
         else:
-            decode_filters = int(base_model_output_shape[-1]+base_model_output_shape_sz[-1])
-            decode_filters_sz = int(base_model_output_shape_sz[-1]+base_model_output_shape_sz[-1])
+            decode_filters = int(base_model_output_shape[-1])
 
         # Define upsampling layer
         def upproject(tensor, filters, name, concat_with):
@@ -107,9 +108,8 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
             up_i = LeakyReLU(alpha=0.2)(up_i)
             return up_i
 
-        encoder_output = Concatenate([base_model_sz.output, base_model.output], axis=-1)
         # Decoder Layers
-        decoder = Conv2D(filters=decode_filters, kernel_size=1, padding='same', input_shape=encoder_output.compute_output_shape(), name='conv2')(encoder_output)
+        decoder = Conv2D(filters=decode_filters, kernel_size=1, padding='same', input_shape=base_model_output_shape, name='conv2')(encoder_output)
         decoder = upproject(decoder, int(decode_filters/2), 'up1', concat_with='pool3_pool')
         decoder = upproject(decoder, int(decode_filters/4), 'up2', concat_with='pool2_pool')
         decoder = upproject(decoder, int(decode_filters/8), 'up3', concat_with='pool1')
