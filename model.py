@@ -107,7 +107,7 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
             up_i = LeakyReLU(alpha=0.2)(up_i)
             return up_i
 
-        encoder_output = Concatenate(name='encoder_output_concat')([base_model_sz.output, base_model.output])
+        encoder_output = Concatenate([base_model_sz.output, base_model.output], axis=-1)
         # Decoder Layers
         decoder = Conv2D(filters=decode_filters, kernel_size=1, padding='same', input_shape=encoder_output.compute_output_shape(), name='conv2')(encoder_output)
         decoder = upproject(decoder, int(decode_filters/2), 'up1', concat_with='pool3_pool')
