@@ -243,7 +243,7 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
 
     return e
 
-def evaluate_sparse_rgb(model, rgb, sparse_depth_and_vm, depth, crop, batch_size=6, verbose=False, use_median_scaling=False):
+def evaluate_rgb_sparse(model, rgb, sparse_depth_and_vm, depth, crop, batch_size=6, verbose=False, use_median_scaling=False):
     N = len(rgb)
 
     bs = batch_size
