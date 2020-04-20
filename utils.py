@@ -151,7 +151,7 @@ def load_void_imu_test_data(void_data_path='/home/mikkel/data/void_release'):
     inds = np.arange(len(depths)).tolist()
     depths = np.array([depths[i] for i in inds])   
     return {'rgb':images, 'depth':depths, 'crop': [20, 459, 24, 615]}#[0, 480, 0, 640]}
-
+x[...,::-1,:]/255
 def load_void_rgb_sparse_test_data(void_data_path='/home/mikkel/data/void_release'):
     void_test_rgb = list(line.strip() for line in open(void_data_path+'/void_150/test_image.txt'))
     void_test_depth = list(line.strip() for line in open(void_data_path+'/void_150/test_ground_truth.txt'))
@@ -159,11 +159,11 @@ def load_void_rgb_sparse_test_data(void_data_path='/home/mikkel/data/void_releas
     images = []
     sparse_depth_and_vm = []
     for rgb_path in void_test_rgb:
-        im = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path)) ),0,1).reshape(480,640,3)
+        im = np.asarray(Image.open( os.path.join(void_data_path, rgb_path)) ).reshape(480,640,3)
         iz = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth') ))/256.0/10.0,0,1).reshape(480,640)*255
         vm = np.array(Image.open(os.path.join(void_data_path, rgb_path).replace('image', 'validity_map')), dtype=np.float32).reshape(480,640)*255
         images.append(im)
-        sparse_depth_and_vm.apped(np.stack([iz, vm], axis=-1))
+        sparse_depth_and_vm.append(np.stack([iz, vm], axis=-1))
     inds = np.arange(len(images)).tolist()
     images = [images[i] for i in inds]
     images = np.stack(images).astype(np.float32)
