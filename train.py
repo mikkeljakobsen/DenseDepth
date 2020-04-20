@@ -36,7 +36,10 @@ else:
     print('Will use ' + str(args.gpus) + ' GPUs.')
 
 # Create the model
-model = create_model( existing=args.checkpoint)
+if args.data == 'void-imu':
+    model = create_two_branch_model( existing=args.checkpoint)
+else:
+    model = create_model( existing=args.checkpoint)
 
 # Data loaders
 if args.data == 'nyu': train_generator, test_generator = get_nyu_train_test_data( args.bs )
@@ -51,7 +54,7 @@ pathlib.Path(runPath).mkdir(parents=True, exist_ok=True)
 print('Output: ' + runPath)
 
  # (optional steps)
-if True:
+if False:
     # Keep a copy of this training script and calling arguments
     with open(__file__, 'r') as training_script: training_script_content = training_script.read()
     training_script_content = '#' + str(sys.argv) + '\n' + training_script_content
