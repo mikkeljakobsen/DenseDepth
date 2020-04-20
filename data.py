@@ -154,7 +154,7 @@ class VOID_ImuAidedRGBSequence(Sequence):
         self.dataset = data_paths
         self.batch_size = batch_size
         self.N = len(self.dataset)
-        self.shape_rgb = (batch_size, 480, 640, 6)
+        self.shape_rgb = (batch_size, 480, 640, 5)
         self.shape_depth = shape_depth
         self.maxDepth = 1000.0 #cm
 
@@ -168,23 +168,24 @@ class VOID_ImuAidedRGBSequence(Sequence):
 
             sample = self.dataset[index]
 
-            x1 = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] ).convert('L')).reshape(480,640)/255,0,1)
-            x2 = np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0/10.0,0,1).reshape(480,640)
-            x3 = np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0/10.0,0,1).reshape(480,640)
-            x_img = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] )).reshape(480,640,3)/255,0,1)
-            y = np.asarray(np.asarray(Image.open( self.data_root+"/"+sample[1] ))/256.0)
+            im = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] ))/255,0,1).reshape(480,640,3)
+            iz = np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0/10.0,0,1).reshape(480,640)
+            vm = np.array(Image.open(os.path.join(self.data_root, sample[0]).replace('image', 'validity_map')), dtype=np.float32).reshape(480,640)
+            assert(np.all(np.unique(vm) == [0, 256]))
+            vm[vm > 0] = 1
+            gt = np.asarray(np.asarray(Image.open( self.data_root+"/"+sample[1] ))/256.0)
             #y[y <= 0] = 0.0
             #v = y.astype(np.float32)
             #v[y > 0] = 1.0
             #v[y > 10] = 0.0
             #y = np.clip(interpolate_depth(y, v).reshape(480,640,1)*100, 10.0, 1000.0) # fill missing pixels and convert to cm
-            y = np.clip(y.reshape(480,640,1)*100, 10.0, 1000.0) # fill missing pixels and convert to cm
-            y = DepthNorm(y, maxDepth=self.maxDepth)
+            gt = np.clip(gt.reshape(480,640,1)*100, 10.0, 1000.0) # fill missing pixels and convert to cm
+            gt = DepthNorm(gt, maxDepth=self.maxDepth)
 
             
 
-            batch_x[i] = np.stack([x1, x2, x3, x_img], axis=-1).reshape(480,640,3)
-            batch_y[i] = nyu_resize(y, 240)
+            batch_x[i] = np.stack([im[:,:,0], im[:,:,1], im[:,:,2], iz, vm], axis=-1).reshape(480,640,5)
+            batch_y[i] = nyu_resize(gt, 240)
 
             # DEBUG:
             #self.policy.debug_img(batch_x[i], np.clip(DepthNorm(batch_y[i])/maxDepth,0,1), idx, i)
