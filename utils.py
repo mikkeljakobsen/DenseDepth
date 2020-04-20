@@ -197,7 +197,7 @@ def compute_errors(gt, pred, min_depth=0.1, max_depth=10.0):
     return a1, a2, a3, abs_rel, rmse, log_10
 
 def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_scaling=False, interp_depth=None):
-    N = len(rgb)
+    N = len(rgb)-2
 
     bs = batch_size
 
