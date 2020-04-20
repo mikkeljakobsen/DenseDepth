@@ -5,6 +5,7 @@ from keras.models import Model, load_model
 from keras.layers import Input, InputLayer, Conv2D, Activation, LeakyReLU, Concatenate
 from layers import BilinearUpSampling2D
 from loss import depth_loss_function
+from keras.layers.merge import concatenate
 
 def create_model(existing='', is_twohundred=False, is_halffeatures=True):
         
@@ -82,7 +83,7 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
         print('Base model loaded.')
 
         # Starting point for decoder
-        encoder_output = Concatenate([base_model_sz.output, base_model.output], axis=-1)
+        encoder_output = concatenate([base_model_sz.output, base_model.output], axis=-1)
         base_model_output_shape = encoder_output.compute_output_shape()
 
         #base_model_output_shape = base_model.layers[-1].output.shape
