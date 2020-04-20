@@ -7,6 +7,7 @@ def DepthNorm(x, maxDepth):
 
 def predict(model, images, minDepth=10, maxDepth=1000, batch_size=2):
     # Support multiple RGBs, one RGB image, even grayscale 
+    print(images.shape)
     if isinstance(images, list):
         if len(images[0].shape) < 4: images = [images[0].reshape((1, images[0].shape[0], images[0].shape[1], images[0].shape[2])), images[1].reshape((1, images[1].shape[0], images[1].shape[1]))]
     else:
@@ -263,17 +264,17 @@ def evaluate_rgb_sparse(model, rgb, sparse_depth_and_vm, depth, crop, batch_size
         pred_y = scale_up(2, predict(model, [x/255, iz_and_vm/255], minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
         
         # Test time augmentation: mirror image estimate
-        pred_y_flip = scale_up(2, predict(model, [x[...,::-1,:]/255, iz_and_vm[...,::-1,:]/255], minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
+        #pred_y_flip = scale_up(2, predict(model, [x[...,::-1,:]/255, iz_and_vm[...,::-1,:]/255], minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
 
         # Crop based on Eigen et al. crop
         true_y = true_y[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
         pred_y = pred_y[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
-        pred_y_flip = pred_y_flip[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
+        #pred_y_flip = pred_y_flip[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
         
         # Compute errors per image in batch
         for j in range(len(true_y)):
-            prediction = (0.5 * pred_y[j]) + (0.5 * np.fliplr(pred_y_flip[j]))
-            predictions.append(prediction)
+            #prediction = (0.5 * pred_y[j]) + (0.5 * np.fliplr(pred_y_flip[j]))
+            predictions.append(pred_y[j])
             testSetDepths.append(true_y[j])
 
     predictions = np.stack(predictions, axis=0)
