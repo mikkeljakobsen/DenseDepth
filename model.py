@@ -87,6 +87,13 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
 
         print('Base model loaded.')
 
+        # Layer freezing?
+        for layer in base_model.layers: 
+            layer.trainable = True
+        for layer in base_model_sz.layers: 
+            layer.trainable = True
+            layer.name = layer.name + str(_sz)
+
         # Starting point for decoder
         encoder_output = concatenate([base_model_sz.output, base_model.output], axis=-1)
         base_model_output_shape = encoder_output.shape
@@ -94,9 +101,6 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
         #base_model_output_shape = base_model.layers[-1].output.shape
         #base_model_output_shape_sz = base_model_sz.layers[-1].output.shape
 
-        # Layer freezing?
-        for layer in base_model.layers: layer.trainable = True
-        for layer in base_model_sz.layers: layer.trainable = True
 
         # Starting number of decoder filters
         if is_halffeatures:
