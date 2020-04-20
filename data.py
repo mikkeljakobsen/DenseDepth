@@ -183,7 +183,7 @@ class VOID_ImuAidedRGBSequence(Sequence):
             gt = np.clip(gt.reshape(480,640,1)*100, 10.0, 1000.0) # fill missing pixels and convert to cm
             gt = DepthNorm(gt, maxDepth=self.maxDepth)
 
-            batch_x[i] = nyu_resize(x, 480)            
+            batch_x[i] = nyu_resize(im, 480)            
             batch_sz[i] = np.stack([iz, vm], axis=-1).reshape(480,640,2)
             #batch_x[i] = np.stack([im[:,:,0], im[:,:,1], im[:,:,2], iz, vm], axis=-1).reshape(480,640,5)
             batch_y[i] = nyu_resize(gt, 240)
