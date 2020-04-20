@@ -92,7 +92,7 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
             layer.trainable = True
         for layer in base_model_sz.layers: 
             layer.trainable = True
-            layer.name = layer.name + str(_sz)
+            layer.name = layer.name + str("_sz")
 
         # Starting point for decoder
         encoder_output = concatenate([base_model_sz.output, base_model.output], axis=-1)
@@ -111,7 +111,7 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
         # Define upsampling layer
         def upproject(tensor, filters, name, concat_with):
             up_i = BilinearUpSampling2D((2, 2), name=name+'_upsampling2d')(tensor)
-            up_i = Concatenate(name=name+'_concat')([up_i, base_model_sz.get_layer(concat_with).output, base_model.get_layer(concat_with).output]) # Skip connection
+            up_i = Concatenate(name=name+'_concat')([up_i, base_model_sz.get_layer(concat_with+str(_sz)).output, base_model.get_layer(concat_with).output]) # Skip connection
             up_i = Conv2D(filters=filters, kernel_size=3, strides=1, padding='same', name=name+'_convA')(up_i)
             up_i = LeakyReLU(alpha=0.2)(up_i)
             up_i = Conv2D(filters=filters, kernel_size=3, strides=1, padding='same', name=name+'_convB')(up_i)
