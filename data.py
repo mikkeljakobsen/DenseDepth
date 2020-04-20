@@ -154,7 +154,7 @@ class VOID_ImuAidedRGBSequence(Sequence):
         self.dataset = data_paths
         self.batch_size = batch_size
         self.N = len(self.dataset)
-        self.shape_rgb = shape_rgb
+        self.shape_rgb = (batch_size, 480, 640, 6)
         self.shape_depth = shape_depth
         self.maxDepth = 1000.0 #cm
 
@@ -169,9 +169,9 @@ class VOID_ImuAidedRGBSequence(Sequence):
             sample = self.dataset[index]
 
             x1 = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] ).convert('L')).reshape(480,640)/255,0,1)
-            x2 = np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'prediction') ))/256.0/10.0,0,1).reshape(480,640)
+            x2 = np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0/10.0,0,1).reshape(480,640)
             x3 = np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0/10.0,0,1).reshape(480,640)
-
+            x_img = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] )).reshape(480,640,3)/255,0,1)
             y = np.asarray(np.asarray(Image.open( self.data_root+"/"+sample[1] ))/256.0)
             #y[y <= 0] = 0.0
             #v = y.astype(np.float32)
@@ -183,7 +183,7 @@ class VOID_ImuAidedRGBSequence(Sequence):
 
             
 
-            batch_x[i] = np.stack([x1, x2, x3], axis=-1).reshape(480,640,3)
+            batch_x[i] = np.stack([x1, x2, x3, x_img], axis=-1).reshape(480,640,3)
             batch_y[i] = nyu_resize(y, 240)
 
             # DEBUG:
