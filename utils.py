@@ -250,7 +250,6 @@ def evaluate_rgb_sparse(model, rgb, sparse_depth_and_vm, depth, crop, batch_size
 
     predictions = []
     testSetDepths = []
-    sparse_depth_and_vm = []
     
     for i in range(N//bs):    
         x = rgb[(i)*bs:(i+1)*bs,:,:,:]
