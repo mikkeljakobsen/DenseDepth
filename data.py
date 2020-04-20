@@ -192,7 +192,7 @@ class VOID_ImuAidedRGBSequence(Sequence):
             #self.policy.debug_img(batch_x[i], np.clip(DepthNorm(batch_y[i])/maxDepth,0,1), idx, i)
         #exit()
 
-        return list(batch_x, batch_sz, batch_y)
+        return [batch_x, batch_sz], batch_y
 
 class NYU_BasicAugmentRGBSequence(Sequence):
     def __init__(self, data, dataset, batch_size, shape_rgb, shape_depth, is_flip=False, is_addnoise=False, is_erase=False):
