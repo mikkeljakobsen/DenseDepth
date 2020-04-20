@@ -152,6 +152,32 @@ def load_void_imu_test_data(void_data_path='/home/mikkel/data/void_release'):
     depths = np.array([depths[i] for i in inds])   
     return {'rgb':images, 'depth':depths, 'crop': [20, 459, 24, 615]}#[0, 480, 0, 640]}
 
+def load_void_rgb_sparse_test_data(void_data_path='/home/mikkel/data/void_release'):
+    void_test_rgb = list(line.strip() for line in open(void_data_path+'/void_150/test_image.txt'))
+    void_test_depth = list(line.strip() for line in open(void_data_path+'/void_150/test_ground_truth.txt'))
+
+    images = []
+    sparse_depth_and_vm = []
+    for rgb_path in void_test_rgb:
+        im = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path)) ),0,1).reshape(480,640,3)
+        iz = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth') ))/256.0/10.0,0,1).reshape(480,640)*255
+        vm = np.array(Image.open(os.path.join(void_data_path, rgb_path).replace('image', 'validity_map')), dtype=np.float32).reshape(480,640)*255
+        images.append(im)
+        sparse_depth_and_vm.apped(np.stack([iz, vm], axis=-1))
+    inds = np.arange(len(images)).tolist()
+    images = [images[i] for i in inds]
+    images = np.stack(images).astype(np.float32)
+    sparse_depth_and_vm = [sparse_depth_and_vm[i] for i in inds]
+    sparse_depth_and_vm = np.stack(sparse_depth_and_vm).astype(np.float32)
+
+    depths = []
+    for depth_path in void_test_depth:
+        img = np.asarray(Image.open( void_data_path+"/"+depth_path ))/256.0
+        depths.append(img)
+    inds = np.arange(len(depths)).tolist()
+    depths = np.array([depths[i] for i in inds])   
+    return {'rgb':images, 'depth':depths, 'sparse_depth_and_vm': sparse_depth_and_vm, 'crop': [20, 459, 24, 615]}#[0, 480, 0, 640]}
+
 def compute_errors(gt, pred, min_depth=0.1, max_depth=10.0):
     v = (gt > min_depth) & (gt < max_depth)
     gt, pred = gt[v], pred[v]
@@ -205,6 +231,48 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
             else:
                 predictions.append(prediction)
             testSetDepths.append(   true_y[j]   )
+
+    predictions = np.stack(predictions, axis=0)
+    testSetDepths = np.stack(testSetDepths, axis=0)
+
+    e = compute_errors(testSetDepths, predictions)
+
+    if verbose:
+        print("{:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}".format('a1', 'a2', 'a3', 'rel', 'rms', 'log_10'))
+        print("{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(e[0],e[1],e[2],e[3],e[4],e[5]))
+
+    return e
+
+def evaluate_sparse_rgb(model, rgb, sparse_depth_and_vm, depth, crop, batch_size=6, verbose=False, use_median_scaling=False):
+    N = len(rgb)
+
+    bs = batch_size
+
+    predictions = []
+    testSetDepths = []
+    sparse_depth_and_vm = []
+    
+    for i in range(N//bs):    
+        x = rgb[(i)*bs:(i+1)*bs,:,:,:]
+        sparse_depth_and_vm = sparse_depth_and_vm[(i)*bs:(i+1)*bs,:,:,:]
+
+        # Compute results
+        true_y = depth[(i)*bs:(i+1)*bs,:,:]
+        pred_y = scale_up(2, predict(model, [x/255, sparse_depth_and_vm/255], minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
+        
+        # Test time augmentation: mirror image estimate
+        pred_y_flip = scale_up(2, predict(model, [x[...,::-1,:]/255, sparse_depth_and_vm[...,::-1,:]/255], minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
+
+        # Crop based on Eigen et al. crop
+        true_y = true_y[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
+        pred_y = pred_y[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
+        pred_y_flip = pred_y_flip[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
+        
+        # Compute errors per image in batch
+        for j in range(len(true_y)):
+            prediction = (0.5 * pred_y[j]) + (0.5 * np.fliplr(pred_y_flip[j]))
+            predictions.append(prediction)
+            testSetDepths.append(true_y[j])
 
     predictions = np.stack(predictions, axis=0)
     testSetDepths = np.stack(testSetDepths, axis=0)
