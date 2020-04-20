@@ -84,7 +84,7 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
 
         # Starting point for decoder
         encoder_output = concatenate([base_model_sz.output, base_model.output], axis=-1)
-        base_model_output_shape = encoder_output.compute_output_shape()
+        base_model_output_shape = encoder_output.shape
 
         #base_model_output_shape = base_model.layers[-1].output.shape
         #base_model_output_shape_sz = base_model_sz.layers[-1].output.shape
