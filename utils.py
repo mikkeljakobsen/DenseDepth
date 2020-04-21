@@ -7,11 +7,11 @@ def DepthNorm(x, maxDepth):
 
 def predict(model, images, minDepth=10, maxDepth=1000, batch_size=2):
     # Support multiple RGBs, one RGB image, even grayscale 
-    #print("rgb", images[0].shape, "sparse:", images[1].shape)
     if isinstance(images, list):
-        if len(images[0].shape) < 4: images = [images[0].reshape((1, images[0].shape[0], images[0].shape[1], images[0].shape[2])), images[1].reshape((1, images[1].shape[0], images[1].shape[1]))]
+        print("rgb", images[0].shape, "sparse:", images[1].shape)
+        if len(images[0].shape) < 4: images = [images[0].reshape((1, images[0].shape[0], images[0].shape[1], images[0].shape[2])), images[1].reshape((1, images[1].shape[0], images[1].shape[1], images[1].shape[2]))]
     else:
-        #print(images.shape)
+        print(images.shape)
         if len(images.shape) < 3: images = np.stack((images,images,images), axis=2)
         if len(images.shape) < 4: images = images.reshape((1, images.shape[0], images.shape[1], images.shape[2]))
     # Compute predictions
@@ -250,6 +250,8 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
 
 def evaluate_rgb_sparse(model, rgb, sparse_depth_and_vm, depth, crop, batch_size=6, verbose=False, use_median_scaling=False):
     N = len(rgb)
+    N_sparse = len(sparse_depth_and_vm)
+    print(N, 'rgb images.', N_sparse, 'sparse+vm images')
 
     bs = batch_size
 
