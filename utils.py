@@ -1,7 +1,10 @@
 import numpy as np
 from PIL import Image
 import os
-from data import nyu_resize
+
+def nyu_resize(img, resolution=480, padding=6):
+    from skimage.transform import resize
+    return resize(img, (resolution, int(resolution*4/3)), preserve_range=True, mode='reflect', anti_aliasing=True )
 
 def DepthNorm(x, maxDepth):
     return maxDepth / x
