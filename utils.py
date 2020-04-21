@@ -1,6 +1,7 @@
 import numpy as np
 from PIL import Image
 import os
+from data import nyu_resize
 
 def DepthNorm(x, maxDepth):
     return maxDepth / x
@@ -190,8 +191,8 @@ def load_void_pred_sparse_test_data(void_data_path='/home/mikkel/data/void_relea
     init_preds = []
     sparse_depths = []
     for rgb_path in void_test_rgb:
-        init_pred = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'prediction') ))/256.0*100,10.0,1000.0).reshape(480,640,1), maxDepth=1000)*255
-        sparse_depth = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth') ))/256.0*100,10.0,1000.0).reshape(480,640,1), maxDepth=1000)*255
+        init_pred = nyu_resize(DepthNorm(np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'prediction') ))/256.0*100,10.0,1000.0).reshape(480,640,1), maxDepth=1000), 240)*255
+        sparse_depth = nyu_resize(DepthNorm(np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth') ))/256.0*100,10.0,1000.0).reshape(480,640,1), maxDepth=1000), 240)*255
         init_preds.append(init_pred)
         sparse_depths.append(sparse_depth)
     inds = np.arange(len(init_preds)).tolist()
