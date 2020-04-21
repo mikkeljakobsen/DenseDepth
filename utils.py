@@ -243,9 +243,9 @@ def compute_errors(gt, pred, min_depth=0.1, max_depth=10.0):
             scinv_list.append(scale_invariant(gt[i], pred[i]))
         scinv = np.mean(scinv_list)
         gt = np.stack(gt).astype(np.float32).reshape(-1)
-        pred = np.stack(pr).astype(np.float32).reshape(-1)
+        pred = np.stack(pred).astype(np.float32).reshape(-1)
     else:
-        scinv = scale_invariant(gt, pr)
+        scinv = scale_invariant(gt, pred)
     # igore invalid depth values from evaluation
     v = (gt > min_depth) & (gt < max_depth)
     gt, pred = gt[v], pred[v]
