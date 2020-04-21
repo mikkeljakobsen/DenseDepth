@@ -173,7 +173,7 @@ class VOID_ImuAidedRGBSequence(Sequence):
             im = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] ))/255,0,1).reshape(480,640,3)
             #iz = np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0/10.0,0,1).reshape(480,640)
             iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*100,10.0,1000.0).reshape(480,640,1), maxDepth=self.maxDepth)
-            vm = np.array(Image.open(os.path.join(self.data_root, sample[0]).replace('image', 'validity_map')), dtype=np.float32).reshape(480,640)
+            vm = np.array(Image.open(os.path.join(self.data_root, sample[0]).replace('image', 'validity_map')), dtype=np.float32).reshape(480,640,1)
             assert(np.all(np.unique(vm) == [0, 256]))
             vm[vm > 0] = 1
             gt = np.asarray(np.asarray(Image.open( self.data_root+"/"+sample[1] ))/256.0)
