@@ -44,7 +44,7 @@ print('Test data loaded.\n')
 start = time.time()
 print('Testing...')
 if args.dataset == 'void-rgb-sparse':
-	e = evaluate_rgb_sparse(model, test_set['rgb'], test_set['sparse_depth_and_vm'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True)
+	e = evaluate_rgb_sparse(model, test_set['rgb'], test_set['sparse_depth_and_vm'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=args.use_median_scaling)
 if args.use_sparse_depth_scaling:
 	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=True, interp_depth=test_set['interp_depth'])
 elif args.use_median_scaling:

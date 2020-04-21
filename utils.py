@@ -277,6 +277,8 @@ def evaluate_rgb_sparse(model, rgb, sparse_depth_and_vm, depth, crop, batch_size
         # Compute errors per image in batch
         for j in range(len(true_y)):
             #prediction = (0.5 * pred_y[j]) + (0.5 * np.fliplr(pred_y_flip[j]))
+            if use_median_scaling:
+                pred_y[j] = pred_y[j]*compute_scaling_factor(true_y[j], pred_y[j])
             predictions.append(pred_y[j])
             testSetDepths.append(true_y[j])
 
