@@ -3,7 +3,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '5'
 
 # Kerasa / TensorFlow
 from loss import depth_loss_function
-from utils import predict, save_images, load_test_data, load_void_test_data, load_void_pred_sparse_test_data
+from utils import predict, save_images, load_test_data, load_void_test_data
 from model import create_model, create_two_branch_model
 from model_resnet import create_model_resnet
 from data import get_nyu_train_test_data, get_unreal_train_test_data, get_void_train_test_data, get_void_depth_completion_train_test_data
