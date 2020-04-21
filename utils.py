@@ -183,7 +183,66 @@ def load_void_rgb_sparse_test_data(void_data_path='/home/mikkel/data/void_releas
     depths = np.array([depths[i] for i in inds])   
     return {'rgb':images, 'depth':depths, 'sparse_depth_and_vm': sparse_depth_and_vm, 'crop': [20, 459, 24, 615]}#[0, 480, 0, 640]}
 
+def load_void_pred_sparse_test_data(void_data_path='/home/mikkel/data/void_release'):
+    void_test_rgb = list(line.strip() for line in open(void_data_path+'/void_150/test_image.txt'))
+    void_test_depth = list(line.strip() for line in open(void_data_path+'/void_150/test_ground_truth.txt'))
+
+    init_preds = []
+    sparse_depths = []
+    for rgb_path in void_test_rgb:
+        init_pred = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'prediction') ))/256.0*100,10.0,1000.0).reshape(480,640,1), maxDepth=self.maxDepth)*255
+        sparse_depth = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth') ))/256.0*100,10.0,1000.0).reshape(480,640,1), maxDepth=self.maxDepth)*255
+        init_preds.append(init_pred)
+        sparse_depths.append(sparse_depth)
+    inds = np.arange(len(init_preds)).tolist()
+    init_preds = [init_preds[i] for i in inds]
+    init_preds = np.stack(init_preds).astype(np.float32)
+    sparse_depths = [sparse_depths[i] for i in inds]
+    sparse_depths = np.stack(sparse_depths).astype(np.float32)
+
+    depths = []
+    for depth_path in void_test_depth:
+        img = np.asarray(Image.open( void_data_path+"/"+depth_path ))/256.0
+        depths.append(img)
+    inds = np.arange(len(depths)).tolist()
+    depths = np.array([depths[i] for i in inds])   
+    return {'init_preds':init_preds, 'sparse_depths': sparse_depths, 'depth':depths, 'crop': [20, 459, 24, 615]}#[0, 480, 0, 640]}
+
+# copied from https://github.com/lmb-freiburg/demon
+def scale_invariant(gt, pr):
+    """
+    Computes the scale invariant loss based on differences of logs of depth maps.
+    Takes preprocessed depths (no nans, infs and non-positive values)
+    depth1:  one depth map
+    depth2:  another depth map
+    Returns:
+        scale_invariant_distance
+    """
+    gt = gt.reshape(-1)
+    pr = pr.reshape(-1)
+
+    v = gt > 0.1
+    gt = gt[v]
+    pr = pr[v]
+
+    log_diff = np.log(gt) - np.log(pr)
+    num_pixels = np.float32(log_diff.size)
+
+    # sqrt(Eq. 3)
+    return np.sqrt(np.sum(np.square(log_diff)) / num_pixels \
+        - np.square(np.sum(log_diff)) / np.square(num_pixels))
+
 def compute_errors(gt, pred, min_depth=0.1, max_depth=10.0):
+    if isinstance(pred, list):
+        scinv_list = []
+        for i in range(len(gt)):
+            scinv_list.append(scale_invariant(gt[i], pred[i]))
+        scinv = np.mean(scinv_list)
+        gt = np.stack(gt).astype(np.float32).reshape(-1)
+        pred = np.stack(pr).astype(np.float32).reshape(-1)
+    else:
+        scinv = scale_invariant(gt, pr)
+    # igore invalid depth values from evaluation
     v = (gt > min_depth) & (gt < max_depth)
     gt, pred = gt[v], pred[v]
     thresh = np.maximum((gt / pred), (pred / gt))
@@ -194,7 +253,14 @@ def compute_errors(gt, pred, min_depth=0.1, max_depth=10.0):
     rmse = (gt - pred) ** 2
     rmse = np.sqrt(rmse.mean())
     log_10 = (np.abs(np.log10(gt)-np.log10(pred))).mean()
-    return a1, a2, a3, abs_rel, rmse, log_10
+
+    mae = np.mean(np.abs(gt - pred))
+    i_mae = np.mean(np.abs(1.0/gt - 1.0/pred))
+    i_rmse = np.sqrt(np.mean((1.0/gt - 1.0/pred)**2))
+    rmse_log = (np.log(gt) - np.log(pr)) ** 2
+    rmse_log = np.sqrt(rmse_log.mean())
+
+    return a1, a2, a3, abs_rel, rmse, log_10, scinv, mae, i_mae, i_rmse, rmse_log
 
 def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_scaling=False, interp_depth=None):
     N = len(rgb)
@@ -243,8 +309,8 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
     e = compute_errors(testSetDepths, predictions)
 
     if verbose:
-        print("{:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}".format('a1', 'a2', 'a3', 'rel', 'rms', 'log_10'))
-        print("{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(e[0],e[1],e[2],e[3],e[4],e[5]))
+        print("{:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}".format('a1', 'a2', 'a3', 'rel', 'rmse', 'log_10', 'scinv', 'mae', 'i_mae', 'i_rmse', 'rmse_log'))
+        print("{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(e[0],e[1],e[2],e[3],e[4],e[5],e[6],e[7],e[8],e[9],e[10]))
 
     return e
 
@@ -288,7 +354,50 @@ def evaluate_rgb_sparse(model, rgb, sparse_depth_and_vm, depth, crop, batch_size
     e = compute_errors(testSetDepths, predictions)
 
     if verbose:
-        print("{:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}".format('a1', 'a2', 'a3', 'rel', 'rms', 'log_10'))
-        print("{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(e[0],e[1],e[2],e[3],e[4],e[5]))
+        print("{:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}".format('a1', 'a2', 'a3', 'rel', 'rmse', 'log_10', 'scinv', 'mae', 'i_mae', 'i_rmse', 'rmse_log'))
+        print("{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(e[0],e[1],e[2],e[3],e[4],e[5],e[6],e[7],e[8],e[9],e[10]))
+
+    return e
+
+def evaluate_pred_sparse(model, init_preds, sparse_depths, depth, crop, batch_size=6, verbose=False, use_median_scaling=False):
+    N = len(rgb)
+
+    bs = batch_size
+
+    predictions = []
+    testSetDepths = []
+    
+    for i in range(N//bs):    
+        x = init_preds[(i)*bs:(i+1)*bs,:,:]
+        iz = sparse_depths[(i)*bs:(i+1)*bs,:,:]
+
+        # Compute results
+        true_y = depth[(i)*bs:(i+1)*bs,:,:]
+        pred_y = scale_up(2, predict(model, [x/255, iz/255], minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
+        
+        # Test time augmentation: mirror image estimate
+        #pred_y_flip = scale_up(2, predict(model, [x[...,::-1,:]/255, iz_and_vm[...,::-1,:]/255], minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
+
+        # Crop based on Eigen et al. crop
+        true_y = true_y[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
+        pred_y = pred_y[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
+        #pred_y_flip = pred_y_flip[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
+        
+        # Compute errors per image in batch
+        for j in range(len(true_y)):
+            #prediction = (0.5 * pred_y[j]) + (0.5 * np.fliplr(pred_y_flip[j]))
+            if use_median_scaling:
+                pred_y[j] = pred_y[j]*compute_scaling_factor(true_y[j], pred_y[j])
+            predictions.append(pred_y[j])
+            testSetDepths.append(true_y[j])
+
+    predictions = np.stack(predictions, axis=0)
+    testSetDepths = np.stack(testSetDepths, axis=0)
+
+    e = compute_errors(testSetDepths, predictions)
+
+    if verbose:
+        print("{:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}".format('a1', 'a2', 'a3', 'rel', 'rmse', 'log_10', 'scinv', 'mae', 'i_mae', 'i_rmse', 'rmse_log'))
+        print("{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(e[0],e[1],e[2],e[3],e[4],e[5],e[6],e[7],e[8],e[9],e[10]))
 
     return e

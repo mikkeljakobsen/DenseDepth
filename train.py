@@ -3,8 +3,9 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '5'
 
 # Kerasa / TensorFlow
 from loss import depth_loss_function
-from utils import predict, save_images, load_test_data, load_void_test_data
+from utils import predict, save_images, load_test_data, load_void_test_data, load_void_pred_sparse_test_data
 from model import create_model, create_two_branch_model
+from model_resnet import create_model_resnet
 from data import get_nyu_train_test_data, get_unreal_train_test_data, get_void_train_test_data, get_void_depth_completion_train_test_data
 from callbacks import get_nyu_callbacks, get_void_callbacks
 
@@ -25,6 +26,7 @@ parser.add_argument('--maxdepth', type=float, default=1000.0, help='Maximum of i
 parser.add_argument('--name', type=str, default='densedepth_nyu', help='A name to attach to the training session')
 parser.add_argument('--checkpoint', type=str, default='', help='Start training from an existing model.')
 parser.add_argument('--full', dest='full', action='store_true', help='Full training with metrics, checkpoints, and image samples.')
+parser.add_argument('--resnet50', dest='resnet50', action='store_true', help='Train a Resnet 50 model.')
 
 args = parser.parse_args()
 
@@ -38,6 +40,8 @@ else:
 # Create the model
 if args.data == 'void-imu':
     model = create_two_branch_model( existing=args.checkpoint)
+elif args.resnet50:  # if want a resnet model
+    model = create_model_resnet(existing=args.checkpoint)
 else:
     model = create_model( existing=args.checkpoint)
 

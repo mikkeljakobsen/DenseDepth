@@ -2,14 +2,14 @@ import os
 import glob
 import time
 import argparse
-from utils import load_void_imu_test_data, load_void_test_data, load_test_data, load_void_rgb_sparse_test_data
+from utils import load_void_imu_test_data, load_void_test_data, load_test_data, load_void_rgb_sparse_test_data, load_void_pred_sparse_test_data
 
 # Kerasa / TensorFlow
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '5'
 from keras.models import load_model
 from layers import BilinearUpSampling2D
 from loss import depth_loss_function
-from utils import predict, load_images, display_images, evaluate, evaluate_rgb_sparse
+from utils import predict, load_images, display_images, evaluate, evaluate_rgb_sparse, evaluate_pred_sparse
 from matplotlib import pyplot as plt
 import numpy as np
 
@@ -37,6 +37,8 @@ elif(args.dataset == 'void-imu'):
 	test_set = load_void_imu_test_data()
 elif(args.dataset == 'void-rgb-sparse'):
 	test_set = load_void_rgb_sparse_test_data()
+elif(args.dataset == 'void-pred-sparse'):
+	test_set = load_void_pred_sparse_test_data()
 else:
 	test_set = load_void_test_data(use_sparse_depth=args.use_sparse_depth_scaling)
 print('Test data loaded.\n')
@@ -45,7 +47,9 @@ start = time.time()
 print('Testing...')
 if args.dataset == 'void-rgb-sparse':
 	e = evaluate_rgb_sparse(model, test_set['rgb'], test_set['sparse_depth_and_vm'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=args.use_median_scaling)
-if args.use_sparse_depth_scaling:
+elif(args.dataset == 'void-pred-sparse'):
+	e = evaluate_pred_sparse(model, test_set['init_preds'], test_set['sparse_depths'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=args.use_median_scaling)
+elif args.use_sparse_depth_scaling:
 	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=True, interp_depth=test_set['interp_depth'])
 elif args.use_median_scaling:
 	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=True)
