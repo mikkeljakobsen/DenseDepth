@@ -56,7 +56,9 @@ x = Conv2D(8, (3, 3), activation='relu', padding='same')(x)
 x = UpSampling2D((2, 2))(x)
 x = Conv2D(16, (3, 3), activation='relu')(x)
 x = UpSampling2D((2, 2))(x)
-decoded = multiply([input_pred, Conv2D(1, (3, 3), activation='sigmoid', padding='same')(x)])
+#decoded = multiply([input_pred, Conv2D(1, (3, 3), activation='sigmoid', padding='same')(x)])
+decoded = Conv2D(1, (3, 3), activation='sigmoid', padding='same')(x)
+decoded = multiply([input_pred, decoded])
 
 model = Model([input_pred, input_sparse], decoded)
 

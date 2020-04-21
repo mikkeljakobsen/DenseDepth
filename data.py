@@ -224,12 +224,10 @@ class VOID_InitPredSparseSequence(Sequence):
             batch_x1[i] = nyu_resize(x1, 240)
             batch_x1[i] = nyu_resize(x2, 240)
             batch_y[i] = nyu_resize(y, 240)
-
             # DEBUG:
             #self.policy.debug_img(batch_x[i], np.clip(DepthNorm(batch_y[i])/maxDepth,0,1), idx, i)
         #exit()
-
-        return batch_x, batch_y
+        return [batch_x1, batch_x2], batch_y
 
 class NYU_BasicAugmentRGBSequence(Sequence):
     def __init__(self, data, dataset, batch_size, shape_rgb, shape_depth, is_flip=False, is_addnoise=False, is_erase=False):
