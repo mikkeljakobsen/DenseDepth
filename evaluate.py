@@ -16,9 +16,11 @@ import numpy as np
 # Argument Parser
 parser = argparse.ArgumentParser(description='High Quality Monocular Depth Estimation via Transfer Learning')
 parser.add_argument('--model', default='nyu.h5', type=str, help='Trained Keras model file.')
-parser.add_argument('--dataset', default='nyu', type=str, help='Test dataset.')
+parser.add_argument('--dataset', default='void', type=str, help='Test dataset.')
 parser.add_argument('--use-median-scaling', dest='use_median_scaling', action='store_true', help='If true, all predictions are scaled by median gt before evaluation.')
 parser.add_argument('--use-sparse-depth-scaling', dest='use_sparse_depth_scaling', action='store_true', help='If true, all predictions are scaled by median sparse depth before evaluation.')
+parser.add_argument('--dont-interpolate', dest='dont_interpolate=False', action='store_true', help='If true, all predictions are scaled by median sparse depth before evaluation.')
+parser.add_argument('--use-scaling-array', dest='use_scaling_array', action='store_true', help='If true, all predictions are scaled by median gt before evaluation.')
 args = parser.parse_args()
 
 # Custom object needed for inference and training
@@ -40,7 +42,7 @@ elif(args.dataset == 'void-rgb-sparse'):
 elif(args.dataset == 'void-pred-sparse'):
 	test_set = load_void_pred_sparse_test_data()
 else:
-	test_set = load_void_test_data(use_sparse_depth=args.use_sparse_depth_scaling)
+	test_set = load_void_test_data(use_sparse_depth=args.use_sparse_depth_scaling, dont_interpolate=args.dont_interpolate)
 print('Test data loaded.\n')
 
 start = time.time()
@@ -50,7 +52,7 @@ if args.dataset == 'void-rgb-sparse':
 elif(args.dataset == 'void-pred-sparse'):
 	e = evaluate_pred_sparse(model, test_set['init_preds'], test_set['sparse_depths'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=args.use_median_scaling)
 elif args.use_sparse_depth_scaling:
-	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=True, interp_depth=test_set['interp_depth'])
+	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=True, interp_depth=test_set['interp_depth'], use_scaling_array=args.use_scaling_array)
 elif args.use_median_scaling:
 	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=True)
 else:

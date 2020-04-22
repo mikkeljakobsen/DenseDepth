@@ -12,10 +12,10 @@ def DepthNorm(x, maxDepth):
 def predict(model, images, minDepth=10, maxDepth=1000, batch_size=2):
     # Support multiple RGBs, one RGB image, even grayscale 
     if isinstance(images, list):
-        print("rgb", images[0].shape, "sparse:", images[1].shape)
+        #print("rgb", images[0].shape, "sparse:", images[1].shape)
         #if len(images[0].shape) < 4: images = [images[0].reshape((1, images[0].shape[0], images[0].shape[1], images[0].shape[2])), images[1].reshape((1, images[1].shape[0], images[1].shape[1], images[1].shape[2]))]
     else:
-        print(images.shape)
+        #print(images.shape)
         if len(images.shape) < 3: images = np.stack((images,images,images), axis=2)
         if len(images.shape) < 4: images = images.reshape((1, images.shape[0], images.shape[1], images.shape[2]))
     # Compute predictions
@@ -88,7 +88,7 @@ def display_images(outputs, inputs=None, gt=None, is_colormap=True, is_rescale=T
 
 def save_images(filename, outputs, inputs=None, gt=None, is_colormap=True, is_rescale=False):
     montage =  display_images(outputs, inputs, is_colormap, is_rescale)
-    im = Image.fromarray(np.uint8(montage*255))
+    im = Image.fromarray(np.uint8(montage*255))cspn
     im.save(filename)
 
 def compute_scaling_factor(gt, pr, min_depth=0.1, max_depth=10.0):
@@ -98,6 +98,21 @@ def compute_scaling_factor(gt, pr, min_depth=0.1, max_depth=10.0):
     # only use valid depth values
     v = (gt > min_depth) & (gt < max_depth)
     return np.median(gt[v] / pr[v])
+
+def compute_scaling_array(gt, pr, min_depth=0.1, max_depth=10.0):
+    gt = np.array(gt, dtype=np.float64)
+    pr = np.array(pr, dtype=np.float64)
+    rows, cols = gt.shape
+    data_row_idx, data_col_idx = np.where((gt > min_depth) & (gt < max_depth))
+    scale_values = gt[data_row_idx, data_col_idx] / pr[data_row_idx, data_col_idx]
+    # Perform linear interpolation in log space
+    interpolator = LinearNDInterpolator(
+        points=np.stack([data_row_idx, data_col_idx], axis=1),
+        values=scale_values,
+        fill_value=1.0)
+    query_row_idx, query_col_idx = np.meshgrid(np.arange(rows), np.arange(cols), indexing='ij')
+    query_coord = np.stack([query_row_idx.ravel(), query_col_idx.ravel()], axis=1)
+    return interpolator(query_coord).reshape([rows, cols])
 
 def load_test_data(test_data_zip_file='nyu_test.zip'):
     print('Loading test data...', end='')
@@ -111,7 +126,7 @@ def load_test_data(test_data_zip_file='nyu_test.zip'):
     print('Test data loaded.\n')
     return {'rgb':rgb, 'depth':depth, 'crop':crop}
 
-def load_void_test_data(void_data_path='/home/mikkel/data/void_release', use_sparse_depth=False):
+def load_void_test_data(void_data_path='/home/mikkel/data/void_release', use_sparse_depth=False, dont_interpolate=False):
     void_test_rgb = list(line.strip() for line in open(void_data_path+'/void_150/test_image.txt'))
     void_test_depth = list(line.strip() for line in open(void_data_path+'/void_150/test_ground_truth.txt'))
 
@@ -133,7 +148,8 @@ def load_void_test_data(void_data_path='/home/mikkel/data/void_release', use_spa
     interp_depths = []
     if use_sparse_depth:
         for interp_depth_path in void_test_depth:
-            img = np.asarray(Image.open( os.path.join(void_data_path, interp_depth_path).replace('ground_truth', 'interp_depth') ))/256.0
+            if dont_interpolate: img = np.asarray(Image.open( os.path.join(void_data_path, interp_depth_path).replace('ground_truth', 'sparse_depth') ))/256.0
+            else: img = np.asarray(Image.open( os.path.join(void_data_path, interp_depth_path).replace('ground_truth', 'interp_depth') ))/256.0
             interp_depths.append(img)
         inds = np.arange(len(interp_depths)).tolist()
         interp_depths = np.array([interp_depths[i] for i in inds])
@@ -266,14 +282,13 @@ def compute_errors(gt, pred, min_depth=0.1, max_depth=10.0):
 
     return a1, a2, a3, abs_rel, rmse, log_10, scinv, mae, i_mae, i_rmse, rmse_log
 
-def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_scaling=False, interp_depth=None):
+def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_scaling=False, interp_depth=None, use_scaling_array=False):
     N = len(rgb)
 
     bs = batch_size
 
     predictions = []
     testSetDepths = []
-    imu_depths = []
     
     for i in range(N//bs):    
         x = rgb[(i)*bs:(i+1)*bs,:,:,:]
@@ -290,17 +305,18 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
         pred_y = pred_y[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
         pred_y_flip = pred_y_flip[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
 
-        imu_depth = []
+        sparse_depth = []
         if interp_depth is not None:
-            imu_depth = interp_depth[(i)*bs:(i+1)*bs,:,:]
-            imu_depth = imu_depth[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
+            sparse_depth = interp_depth[(i)*bs:(i+1)*bs,:,:]
+            sparse_depth = sparse_depth[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
         
         # Compute errors per image in batch
         for j in range(len(true_y)):
             prediction = (0.5 * pred_y[j]) + (0.5 * np.fliplr(pred_y_flip[j]))
             if use_median_scaling:
                 if interp_depth is not None:
-                    predictions.append(prediction*compute_scaling_factor(imu_depth[j], prediction))
+                    if use_scaling_array: predictions.append(prediction*compute_scaling_array(sparse_depth[j], prediction))
+                    else: predictions.append(prediction*compute_scaling_factor(sparse_depth[j], prediction))
                 else:
                     predictions.append(prediction*compute_scaling_factor(true_y[j], prediction))
             else:
@@ -351,7 +367,7 @@ def evaluate_rgb_sparse(model, rgb, sparse_depth_and_vm, depth, crop, batch_size
                 pred_y[j] = pred_y[j]*compute_scaling_factor(true_y[j], pred_y[j])
             predictions.append(pred_y[j])
             testSetDepths.append(true_y[j])
-
+        print("tested", (i+1)*bs, "out of", N, "test images")
     predictions = np.stack(predictions, axis=0)
     testSetDepths = np.stack(testSetDepths, axis=0)
 
