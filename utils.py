@@ -329,8 +329,8 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
     e = compute_errors(testSetDepths, predictions)
 
     if verbose:
-        print("{:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}".format('a1', 'a2', 'a3', 'rel', 'rmse', 'log_10', 'scinv', 'mae', 'i_mae', 'i_rmse', 'rmse_log'))
-        print("{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(e[0],e[1],e[2],e[3],e[4],e[5],e[6],e[7],e[8],e[9],e[10]))
+        print("{:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}".format('a1', 'a2', 'a3', 'rel', 'rmse', 'log_10', 'scinv', 'mae', 'i_mae', 'i_rmse', 'rmse_log'))
+        print("{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(e[0],e[1],e[2],e[3],e[4],e[5],e[6],e[7],e[8],e[9],e[10]))
 
     return e
 
@@ -374,8 +374,8 @@ def evaluate_rgb_sparse(model, rgb, sparse_depth_and_vm, depth, crop, batch_size
     e = compute_errors(testSetDepths, predictions)
 
     if verbose:
-        print("{:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}".format('a1', 'a2', 'a3', 'rel', 'rmse', 'log_10', 'scinv', 'mae', 'i_mae', 'i_rmse', 'rmse_log'))
-        print("{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(e[0],e[1],e[2],e[3],e[4],e[5],e[6],e[7],e[8],e[9],e[10]))
+        print("{:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}".format('a1', 'a2', 'a3', 'rel', 'rmse', 'log_10', 'scinv', 'mae', 'i_mae', 'i_rmse', 'rmse_log'))
+        print("{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(e[0],e[1],e[2],e[3],e[4],e[5],e[6],e[7],e[8],e[9],e[10]))
 
     return e
 
@@ -417,7 +417,7 @@ def evaluate_pred_sparse(model, init_preds, sparse_depths, depth, crop, batch_si
     e = compute_errors(testSetDepths, predictions)
 
     if verbose:
-        print("{:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}".format('a1', 'a2', 'a3', 'rel', 'rmse', 'log_10', 'scinv', 'mae', 'i_mae', 'i_rmse', 'rmse_log'))
-        print("{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(e[0],e[1],e[2],e[3],e[4],e[5],e[6],e[7],e[8],e[9],e[10]))
+        print("{:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}".format('a1', 'a2', 'a3', 'rel', 'rmse', 'log_10', 'scinv', 'mae', 'i_mae', 'i_rmse', 'rmse_log'))
+        print("{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(e[0],e[1],e[2],e[3],e[4],e[5],e[6],e[7],e[8],e[9],e[10]))
 
     return e
