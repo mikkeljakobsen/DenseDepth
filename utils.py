@@ -1,6 +1,7 @@
 import numpy as np
 from PIL import Image
 import os
+from scipy.interpolate import LinearNDInterpolator
 
 def nyu_resize(img, resolution=480, padding=6):
     from skimage.transform import resize
@@ -322,6 +323,7 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
             else:
                 predictions.append(prediction)
             testSetDepths.append(   true_y[j]   )
+        print("tested", (i+1)*bs, "out of", N, "test images")
 
     predictions = np.stack(predictions, axis=0)
     testSetDepths = np.stack(testSetDepths, axis=0)
@@ -410,6 +412,7 @@ def evaluate_pred_sparse(model, init_preds, sparse_depths, depth, crop, batch_si
                 pred_y[j] = pred_y[j]*compute_scaling_factor(true_y[j], pred_y[j])
             predictions.append(pred_y[j])
             testSetDepths.append(true_y[j])
+        print("tested", (i+1)*bs, "out of", N, "test images")
 
     predictions = np.stack(predictions, axis=0)
     testSetDepths = np.stack(testSetDepths, axis=0)
