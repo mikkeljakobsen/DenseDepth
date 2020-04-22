@@ -57,13 +57,13 @@ def get_void_train_test_data(batch_size, void_data_path='/home/mikkel/data/void_
 def get_void_depth_completion_train_test_data(batch_size, void_data_path='/home/mikkel/data/void_release'):
     void_train, void_test, shape_rgb, shape_depth = get_void_data(batch_size, void_data_path)
     train_generator = VOID_ImuAidedRGBSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
-    test_generator = VOID_ImuAidedRGBSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
+    test_generator = VOID_ImuAidedRGBSequence(void_data_path, void_test, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
     return train_generator, test_generator
 
 def get_void_pred_sparse_train_test_data(batch_size, void_data_path='/home/mikkel/data/void_release'):
     void_train, void_test, shape_rgb, shape_depth = get_void_data(batch_size, void_data_path)
     train_generator = VOID_InitPredSparseSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
-    test_generator = VOID_InitPredSparseSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
+    test_generator = VOID_InitPredSparseSequence(void_data_path, void_test, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
     return train_generator, test_generator
 
 class VOID_BasicAugmentRGBSequence(Sequence):
