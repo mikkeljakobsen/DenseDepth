@@ -19,8 +19,8 @@ parser.add_argument('--model', default='nyu.h5', type=str, help='Trained Keras m
 parser.add_argument('--dataset', default='void', type=str, help='Test dataset.')
 parser.add_argument('--use-median-scaling', default=False, dest='use_median_scaling', action='store_true', help='If true, all predictions are scaled by median gt before evaluation.')
 parser.add_argument('--use-sparse-depth-scaling', default=False, dest='use_sparse_depth_scaling', action='store_true', help='If true, all predictions are scaled by median sparse depth before evaluation.')
-parser.add_argument('--dont-interpolate', default=False, dest='dont_interpolate=False', action='store_true', help='If true, all predictions are scaled by median sparse depth before evaluation.')
-parser.add_argument('--use-scaling-array', default=False, dest='use_scaling_array', action='store_true', help='If true, all predictions are scaled by median gt before evaluation.')
+parser.add_argument('--dont-interpolate', default=False, dest='dont_interpolate', action='store_true', help='Use raw sparse depth maps for refinement (dont interpolate).')
+parser.add_argument('--use-scaling-array', default=False, dest='use_scaling_array', action='store_true', help='If true, all predictions are scaled by a scaling array before evaluation.')
 args = parser.parse_args()
 
 # Custom object needed for inference and training
