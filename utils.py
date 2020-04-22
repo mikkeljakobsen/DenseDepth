@@ -88,7 +88,7 @@ def display_images(outputs, inputs=None, gt=None, is_colormap=True, is_rescale=T
 
 def save_images(filename, outputs, inputs=None, gt=None, is_colormap=True, is_rescale=False):
     montage =  display_images(outputs, inputs, is_colormap, is_rescale)
-    im = Image.fromarray(np.uint8(montage*255))cspn
+    im = Image.fromarray(np.uint8(montage*255))
     im.save(filename)
 
 def compute_scaling_factor(gt, pr, min_depth=0.1, max_depth=10.0):
