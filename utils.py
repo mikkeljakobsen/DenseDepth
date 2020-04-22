@@ -274,12 +274,12 @@ def compute_errors(gt, pred, min_depth=0.1, max_depth=10.0):
     log_10 = (np.abs(np.log10(gt)-np.log10(pred))).mean()
     rmse_log = (np.log(gt) - np.log(pred)) ** 2
     rmse_log = np.sqrt(rmse_log.mean())
-
-    mae = np.mean(np.abs(gt*1000.0 - pred*1000.0))
-    rmse = (gt*1000.0 - pred*1000.0) ** 2
+    
+    mae = np.mean(np.abs(gt - pred))
+    rmse = (gt - pred) ** 2
     rmse = np.sqrt(rmse.mean())
-    i_mae = np.mean(np.abs(1.0/(gt*0.001) - 1.0/(pred*0.001)))
-    i_rmse = np.sqrt(np.mean((1.0/(gt*0.001) - 1.0/(pred*0.001))**2))
+    i_mae = np.mean(np.abs(1.0/gt - 1.0/pred))
+    i_rmse = np.sqrt(np.mean((1.0/gt - 1.0/pred)**2))
 
     return a1, a2, a3, abs_rel, rmse, log_10, scinv, mae, i_mae, i_rmse, rmse_log
 
