@@ -136,8 +136,8 @@ def load_void_test_data(void_data_path='/home/mikkel/data/void_release', channel
     for rgb_path in void_test_rgb:
         img = np.asarray(Image.open( void_data_path+"/"+rgb_path )).reshape(480,640,3)
         if channels == 5:
-            iz = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth')))/256.0/10.0,0,1).reshape(480,640)*255
-            vm = np.array(Image.open(os.path.join(void_data_path, rgb_path).replace('image', 'validity_map')), dtype=np.float32).reshape(480,640)*255
+            iz = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth')))/256.0/10.0,0,1)*255
+            vm = np.array(Image.open(os.path.join(void_data_path, rgb_path).replace('image', 'validity_map')), dtype=np.float32)*255
             img = np.stack([img[:,:,0], img[:,:,1], img[:,:,2], iz, vm], axis=-1)
         images.append(img)
     inds = np.arange(len(images)).tolist()
@@ -191,8 +191,8 @@ def load_void_rgb_sparse_test_data(void_data_path='/home/mikkel/data/void_releas
     sparse_depth_and_vm = []
     for rgb_path in void_test_rgb:
         im = np.asarray(Image.open( os.path.join(void_data_path, rgb_path)) ).reshape(480,640,3)
-        iz = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth') ))/256.0/10.0,0,1).reshape(480,640)*255
-        vm = np.array(Image.open(os.path.join(void_data_path, rgb_path).replace('image', 'validity_map')), dtype=np.float32).reshape(480,640)*255
+        iz = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth') ))/256.0/10.0,0,1)*255
+        vm = np.array(Image.open(os.path.join(void_data_path, rgb_path).replace('image', 'validity_map')), dtype=np.float32)*255
         images.append(im)
         sparse_depth_and_vm.append(np.stack([iz, vm], axis=-1))
     inds = np.arange(len(images)).tolist()
