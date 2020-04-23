@@ -157,7 +157,7 @@ class VOID_ImuAidedRGBSequence(Sequence):
         self.N = len(self.dataset)
         self.shape_rgb = shape_rgb
         self.shape_sz = (batch_size, 480, 640, 2)
-        self.shape_depth = shape_depth
+        self.shape_depth = (batch_size, 480, 640, 1)#shape_depth
         self.maxDepth = 1000.0 #cm
         from sklearn.utils import shuffle
         self.dataset = shuffle(self.dataset, random_state=0)
