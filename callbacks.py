@@ -117,7 +117,7 @@ def get_void_callbacks(model, basemodel, train_generator, test_generator, test_s
                     h, w = y_train.shape[0], y_train.shape[1]
 
                     rgb_train = resize(x_train[:,:,:3], (h,w), preserve_range=True, mode='reflect', anti_aliasing=True)
-                    rgb_test = resize(x_test[:,:,3], (h,w), preserve_range=True, mode='reflect', anti_aliasing=True)
+                    rgb_test = resize(x_test[:,:,:3], (h,w), preserve_range=True, mode='reflect', anti_aliasing=True)
 
                     gt_train = plasma(y_train[:,:,0])[:,:,:3]
                     gt_test = plasma(y_test[:,:,0])[:,:,:3]

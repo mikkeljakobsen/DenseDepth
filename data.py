@@ -186,7 +186,7 @@ class VOID_BasicAugmentRGBDSequence(Sequence):
 
             if is_apply_policy: x, batch_y[i], iz, vm = self.policy(x, batch_y[i], iz=iz, vm=vm)
 
-            batch_x[i] = np.stack([x[:,:,0], x[:,:,1], x[:,:,2], iz, vm], axis=-1)
+            batch_x[i] = np.stack([x[:,:,0].reshape(480,640,1), x[:,:,1].reshape(480,640,1), x[:,:,2].reshape(480,640,1), iz, vm], axis=-1)
 
             # DEBUG:
             #self.policy.debug_img(batch_x[i], np.clip(DepthNorm(batch_y[i])/maxDepth,0,1), idx, i)
@@ -226,7 +226,7 @@ class VOID_BasicRGBDSequence(Sequence):
             y = np.clip(y.reshape(480,640,1)*100, 10.0, 1000.0) # fill missing pixels and convert to cm
             y = DepthNorm(y, maxDepth=self.maxDepth)
 
-            batch_x[i] = np.stack([x[:,:,0], x[:,:,1], x[:,:,2], iz, vm], axis=-1)
+            batch_x[i] = np.stack([x[:,:,0].reshape(480,640,1), x[:,:,1].reshape(480,640,1), x[:,:,2].reshape(480,640,1), iz, vm], axis=-1)
             batch_y[i] = nyu_resize(y, 240)
 
             # DEBUG:
