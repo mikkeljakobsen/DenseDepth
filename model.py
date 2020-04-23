@@ -173,9 +173,10 @@ def create_two_branch_model_late_fusion(existing='', is_twohundred=False, is_hal
             decode_filters = int(base_model_output_shape[-1])
 
         # Define upsampling layer
-        def upproject(tensor, filters, name, concat_with):
+        def upproject(tensor, filters, name, concat_with, is_concat_sparse_input=False):
             up_i = BilinearUpSampling2D((2, 2), name=name+'_upsampling2d')(tensor)
-            up_i = Concatenate(name=name+'_concat')([up_i, base_model.get_layer(concat_with).output]) # Skip connection
+            if is_concat_sparse_input: up_i = Concatenate(name=name+'_concat')([up_i, input_sparse]) # Skip connection
+            else: up_i = Concatenate(name=name+'_concat')([up_i, base_model.get_layer(concat_with).output]) # Skip connection
             up_i = Conv2D(filters=filters, kernel_size=3, strides=1, padding='same', name=name+'_convA')(up_i)
             up_i = LeakyReLU(alpha=0.2)(up_i)
             up_i = Conv2D(filters=filters, kernel_size=3, strides=1, padding='same', name=name+'_convB')(up_i)
@@ -187,9 +188,8 @@ def create_two_branch_model_late_fusion(existing='', is_twohundred=False, is_hal
         decoder = upproject(decoder, int(decode_filters/2), 'up1', concat_with='pool3_pool')
         decoder = upproject(decoder, int(decode_filters/4), 'up2', concat_with='pool2_pool')
         decoder = upproject(decoder, int(decode_filters/8), 'up3', concat_with='pool1')
-        decoder = upproject(decoder, int(decode_filters/16), 'up4', concat_with='conv1/relu')
-        
-        decoder = upproject(decoder, int(decode_filters/32), 'up5', concat_with='input_sparse')
+        decoder = upproject(decoder, int(decode_filters/16), 'up4', concat_with='conv1/relu')        
+        decoder = upproject(decoder, int(decode_filters/32), 'up5', concat_with='input_sparse', is_concat_sparse_input=True)
 
         # Extract depths (final layer)
         conv3 = Conv2D(filters=1, kernel_size=3, strides=1, padding='same', name='conv3')(decoder)
