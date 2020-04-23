@@ -38,11 +38,13 @@ if args.gpus == 1:
 else:
     print('Will use ' + str(args.gpus) + ' GPUs.')
 
+channels = 3
 # Create the model
 if args.data == 'void' and args.voidmode == 'two-branch':
     model = create_two_branch_model_late_fusion( existing=args.checkpoint)
 elif args.data == 'void' and args.voidmode == '5channel':
     model = create_model(existing=args.checkpoint, channels=5)
+    channels = 5
 elif args.resnet50:  # if want a resnet model
     model = create_model_resnet(existing=args.checkpoint)
 else:
@@ -92,7 +94,7 @@ print('Ready for training!\n')
 callbacks = []
 if args.data == 'nyu': callbacks = get_nyu_callbacks(model, basemodel, train_generator, test_generator, load_test_data() if args.full else None , runPath)
 if args.data == 'unreal': callbacks = get_nyu_callbacks(model, basemodel, train_generator, test_generator, load_test_data() if args.full else None , runPath)
-if args.data == 'void': callbacks = get_void_callbacks(model, basemodel, train_generator, test_generator, load_void_test_data() if args.full else None , runPath)
+if args.data == 'void': callbacks = get_void_callbacks(model, basemodel, train_generator, test_generator, load_void_test_data(channels=channels) if args.full else None , runPath)
 if args.data == 'void-imu': callbacks = get_void_callbacks(model, basemodel, train_generator, test_generator, None , runPath)
 
 # Start training
