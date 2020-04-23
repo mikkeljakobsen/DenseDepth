@@ -41,7 +41,7 @@ else:
 # Create the model
 if args.data == 'void' and args.voidmode == 'two-branch':
     model = create_two_branch_model_late_fusion( existing=args.checkpoint)
-elif args.data == 'void' and args.voidmode == '5channel'
+elif args.data == 'void' and args.voidmode == '5channel':
     model = create_model(existing=args.checkpoint, channels=5)
 elif args.resnet50:  # if want a resnet model
     model = create_model_resnet(existing=args.checkpoint)
