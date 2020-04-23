@@ -150,9 +150,9 @@ def create_two_branch_model_late_fusion(existing='', is_twohundred=False, is_hal
 
         # Encoder Layers
         if is_twohundred:
-            base_model = applications.DenseNet201(input_shape=(None, None, 3), include_top=False, weights=None)
+            base_model = applications.DenseNet201(input_shape=(None, None, 3), include_top=False)
         else:
-            base_model = applications.DenseNet169(input_shape=(None, None, 3), include_top=False, weights=None)
+            base_model = applications.DenseNet169(input_shape=(None, None, 3), include_top=False)
         input_sparse = Input(shape=(480, 640, 2), name='input_sparse')
 
         print('Base model loaded.')
