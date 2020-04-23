@@ -39,7 +39,7 @@ else:
 
 # Create the model
 if args.data == 'void-imu':
-    model = create_two_branch_model( existing=args.checkpoint)
+    model = create_two_branch_model_late_fusion( existing=args.checkpoint)
 elif args.resnet50:  # if want a resnet model
     model = create_model_resnet(existing=args.checkpoint)
 else:

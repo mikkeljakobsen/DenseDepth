@@ -187,7 +187,7 @@ class VOID_ImuAidedRGBSequence(Sequence):
             batch_x[i] = nyu_resize(im, 480)            
             batch_sz[i] = np.stack([iz, vm], axis=-1).reshape(480,640,2)
             #batch_x[i] = np.stack([im[:,:,0], im[:,:,1], im[:,:,2], iz, vm], axis=-1).reshape(480,640,5)
-            batch_y[i] = nyu_resize(gt, 240)
+            batch_y[i] = nyu_resize(gt, 480)
 
             # DEBUG:
             #self.policy.debug_img(batch_x[i], np.clip(DepthNorm(batch_y[i])/maxDepth,0,1), idx, i)
