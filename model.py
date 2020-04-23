@@ -183,7 +183,7 @@ def create_two_branch_model_late_fusion(existing='', is_twohundred=False, is_hal
             return up_i
 
         # Decoder Layers
-        decoder = Conv2D(filters=decode_filters, kernel_size=1, padding='same', input_shape=base_model_output_shape, name='conv2')(encoder_output)
+        decoder = Conv2D(filters=decode_filters, kernel_size=1, padding='same', input_shape=base_model_output_shape, name='conv2')(base_model.output)
         decoder = upproject(decoder, int(decode_filters/2), 'up1', concat_with='pool3_pool')
         decoder = upproject(decoder, int(decode_filters/4), 'up2', concat_with='pool2_pool')
         decoder = upproject(decoder, int(decode_filters/8), 'up3', concat_with='pool1')
