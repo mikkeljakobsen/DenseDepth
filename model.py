@@ -195,7 +195,7 @@ def create_two_branch_model_late_fusion(existing='', is_twohundred=False, is_hal
         conv3 = Conv2D(filters=1, kernel_size=3, strides=1, padding='same', name='conv3')(decoder)
 
         # Create the model
-        model = Model(inputs=[base_model.input, base_model_sz.input], outputs=conv3)
+        model = Model(inputs=[base_model.input, input_sparse], outputs=conv3)
     else:
         # Load model from file
         if not existing.endswith('.h5'):
