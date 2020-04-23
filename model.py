@@ -7,13 +7,15 @@ from layers import BilinearUpSampling2D
 from loss import depth_loss_function
 from keras.layers.merge import concatenate
 
-def create_model(existing='', is_twohundred=False, is_halffeatures=True):
+def create_model(existing='', is_twohundred=False, is_halffeatures=True, channels=3):
         
     if len(existing) == 0:
         print('Loading base model (DenseNet)..')
 
+        if channels != 3:
+            base_model = applications.DenseNet169(input_shape=(None, None, channels), include_top=False, weights=None)
         # Encoder Layers
-        if is_twohundred:
+        elif is_twohundred:
             base_model = applications.DenseNet201(input_shape=(None, None, 3), include_top=False)
         else:
             base_model = applications.DenseNet169(input_shape=(None, None, 3), include_top=False)

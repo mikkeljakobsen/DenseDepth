@@ -6,7 +6,7 @@ from loss import depth_loss_function
 from utils import predict, save_images, load_test_data, load_void_test_data
 from model import create_model, create_two_branch_model, create_two_branch_model_late_fusion
 from model_resnet import create_model_resnet
-from data import get_nyu_train_test_data, get_unreal_train_test_data, get_void_train_test_data, get_void_depth_completion_train_test_data
+from data import get_nyu_train_test_data, get_unreal_train_test_data, get_void_train_test_data
 from callbacks import get_nyu_callbacks, get_void_callbacks
 
 from keras.optimizers import Adam
@@ -16,6 +16,7 @@ from keras.utils.vis_utils import plot_model
 # Argument Parser
 parser = argparse.ArgumentParser(description='High Quality Monocular Depth Estimation via Transfer Learning')
 parser.add_argument('--data', default='nyu', type=str, help='Training dataset.')
+parser.add_argument('--voidmode', default='normal', type=str, help='VOID training mode.')
 parser.add_argument('--lr', type=float, default=0.0001, help='Learning rate')
 parser.add_argument('--bs', type=int, default=4, help='Batch size')
 parser.add_argument('--epochs', type=int, default=20, help='Number of epochs')
@@ -38,8 +39,10 @@ else:
     print('Will use ' + str(args.gpus) + ' GPUs.')
 
 # Create the model
-if args.data == 'void-imu':
+if args.data == 'void' and args.voidmode == 'two-branch':
     model = create_two_branch_model_late_fusion( existing=args.checkpoint)
+elif args.data == 'void' and args.voidmode == '5channel'
+    model = create_model(existing=args.checkpoint, channels=5)
 elif args.resnet50:  # if want a resnet model
     model = create_model_resnet(existing=args.checkpoint)
 else:
@@ -48,8 +51,7 @@ else:
 # Data loaders
 if args.data == 'nyu': train_generator, test_generator = get_nyu_train_test_data( args.bs )
 if args.data == 'unreal': train_generator, test_generator = get_unreal_train_test_data( args.bs )
-if args.data == 'void': train_generator, test_generator = get_void_train_test_data( args.bs )
-if args.data == 'void-imu': train_generator, test_generator = get_void_depth_completion_train_test_data( args.bs )
+if args.data == 'void': train_generator, test_generator = get_void_train_test_data( args.bs, mode=args.voidmode )
 # Training session details
 runID = str(int(time.time())) + '-n' + str(len(train_generator)) + '-e' + str(args.epochs) + '-bs' + str(args.bs) + '-lr' + str(args.lr) + '-' + args.name
 outputPath = './models/'

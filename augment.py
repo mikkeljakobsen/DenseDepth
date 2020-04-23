@@ -21,7 +21,7 @@ class BasicPolicy(object):
         # Erase
         self.erase_ratio = erase_ratio
 
-    def __call__(self, img, depth):
+    def __call__(self, img, depth, iz=None, vm=None):
 
         # 0) Add poisson noise (e.g. choose peak value 20)
         # https://stackoverflow.com/questions/19289470/adding-poisson-noise-to-an-image
@@ -40,6 +40,9 @@ class BasicPolicy(object):
         if random.uniform(0, 1) <= self.mirror_ratio:
             img = img[...,::-1,:]
             depth = depth[...,::-1,:]
+            if not (iz is None):
+                iz = iz[...,::-1,:]
+                vm = vm[...,::-1,:]
 
         # 3) Flip image vertically
         if random.uniform(0, 1) < self.flip_ratio:
@@ -50,7 +53,8 @@ class BasicPolicy(object):
         if random.uniform(0, 1) < self.erase_ratio:
             img = self.eraser(img)
 
-        return img, depth
+        if iz is None: return img, depth
+        else: return img, depth, iz, vm
 
     def __repr__(self):
         return "Basic Policy"

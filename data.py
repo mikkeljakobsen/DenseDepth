@@ -48,22 +48,20 @@ def get_void_data(batch_size, void_data_path):
     shape_depth = (batch_size, 240, 320, 1)
     return void_train[:48414], void_train[48414:], shape_rgb, shape_depth
 
-def get_void_train_test_data(batch_size, void_data_path='/home/mikkel/data/void_release'):
+def get_void_train_test_data(batch_size, void_data_path='/home/mikkel/data/void_release', mode='normal'):
     void_train, void_test, shape_rgb, shape_depth = get_void_data(batch_size, void_data_path)
-    train_generator = VOID_BasicAugmentRGBSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
-    test_generator = VOID_BasicRGBSequence(void_data_path, void_test, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
-    return train_generator, test_generator
-
-def get_void_depth_completion_train_test_data(batch_size, void_data_path='/home/mikkel/data/void_release'):
-    void_train, void_test, shape_rgb, shape_depth = get_void_data(batch_size, void_data_path)
-    train_generator = VOID_ImuAidedRGBSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
-    test_generator = VOID_ImuAidedRGBSequence(void_data_path, void_test, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
-    return train_generator, test_generator
-
-def get_void_pred_sparse_train_test_data(batch_size, void_data_path='/home/mikkel/data/void_release'):
-    void_train, void_test, shape_rgb, shape_depth = get_void_data(batch_size, void_data_path)
-    train_generator = VOID_InitPredSparseSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
-    test_generator = VOID_InitPredSparseSequence(void_data_path, void_test, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
+    if mode == 'normal':
+        train_generator = VOID_BasicAugmentRGBSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
+        test_generator = VOID_BasicRGBSequence(void_data_path, void_test, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
+    elif mode == 'two-branch':
+        train_generator = VOID_ImuAidedRGBSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
+        test_generator = VOID_ImuAidedRGBSequence(void_data_path, void_test, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
+    elif mode == '5channel':
+        train_generator = VOID_BasicAugmentRGBDSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
+        test_generator = VOID_BasicRGBDSequence(void_data_path, void_test, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
+    elif mode == 'pred+sparse':
+        train_generator = VOID_InitPredSparseSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
+        test_generator = VOID_InitPredSparseSequence(void_data_path, void_test, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
     return train_generator, test_generator
 
 class VOID_BasicAugmentRGBSequence(Sequence):
@@ -132,15 +130,103 @@ class VOID_BasicRGBSequence(Sequence):
 
             x = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] )).reshape(480,640,3)/255,0,1)
             y = np.asarray(np.asarray(Image.open( self.data_root+"/"+sample[1] ))/256.0)
-            #y[y <= 0] = 0.0
-            #v = y.astype(np.float32)
-            #v[y > 0] = 1.0
-            #v[y > 10] = 0.0
-            #y = np.clip(interpolate_depth(y, v).reshape(480,640,1)*100, 10.0, 1000.0) # fill missing pixels and convert to cm
             y = np.clip(y.reshape(480,640,1)*100, 10.0, 1000.0) # fill missing pixels and convert to cm
             y = DepthNorm(y, maxDepth=self.maxDepth)
 
             batch_x[i] = nyu_resize(x, 480)
+            batch_y[i] = nyu_resize(y, 240)
+
+            # DEBUG:
+            #self.policy.debug_img(batch_x[i], np.clip(DepthNorm(batch_y[i])/maxDepth,0,1), idx, i)
+        #exit()
+
+        return batch_x, batch_y
+
+class VOID_BasicAugmentRGBDSequence(Sequence):
+    def __init__(self, data_root, data_paths, batch_size, shape_rgb, shape_depth, is_flip=False, is_addnoise=False, is_erase=False):
+        self.data_root = data_root
+        self.dataset = data_paths
+        self.policy = BasicPolicy( color_change_ratio=0.50, mirror_ratio=0.50, flip_ratio=0.0 if not is_flip else 0.2, 
+                                    add_noise_peak=0 if not is_addnoise else 20, erase_ratio=-1.0 if not is_erase else 0.5)
+        self.batch_size = batch_size
+        self.shape_rgb = shape_rgb
+        self.shape_rgbd = (batch_size, 480, 640, 5)
+        self.shape_depth = shape_depth
+        self.maxDepth = 1000.0 #cm
+
+        from sklearn.utils import shuffle
+        self.dataset = shuffle(self.dataset, random_state=0)
+
+        self.N = len(self.dataset)
+
+    def __len__(self):
+        return int(np.ceil(self.N / float(self.batch_size)))
+
+    def __getitem__(self, idx, is_apply_policy=True):
+        batch_x, batch_y = np.zeros( self.shape_rgbd ), np.zeros( self.shape_depth )
+
+        # Augmentation of RGB images
+        for i in range(batch_x.shape[0]):
+            index = min((idx * self.batch_size) + i, self.N-1)
+
+            sample = self.dataset[index]
+
+            x = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] )).reshape(480,640,3)/255,0,1)
+
+            iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*100,10.0,1000.0).reshape(480,640,1), maxDepth=self.maxDepth)
+            vm = np.array(Image.open(os.path.join(self.data_root, sample[0]).replace('image', 'validity_map')), dtype=np.float32).reshape(480,640,1)
+            assert(np.all(np.unique(vm) == [0, 256]))
+            vm[vm > 0] = 1
+
+            y = np.asarray(np.asarray(Image.open( self.data_root+"/"+sample[1] ))/256.0)
+            y = np.clip(y.reshape(480,640,1)*100, 10.0, 1000.0) # fill missing pixels and convert to cm
+            y = DepthNorm(y, maxDepth=self.maxDepth)
+
+            batch_y[i] = nyu_resize(y, 240)
+
+            if is_apply_policy: x, batch_y[i], iz, vm = self.policy(x, batch_y[i], iz=iz, vm=vm)
+
+            batch_x[i] = np.stack([x[:,:,0], x[:,:,1], x[:,:,2], iz, vm], axis=-1)
+
+            # DEBUG:
+            #self.policy.debug_img(batch_x[i], np.clip(DepthNorm(batch_y[i])/maxDepth,0,1), idx, i)
+        #exit()
+
+        return batch_x, batch_y
+
+class VOID_BasicRGBDSequence(Sequence):
+    def __init__(self, data_root, data_paths, batch_size,shape_rgb, shape_depth):
+        self.data_root = data_root
+        self.dataset = data_paths
+        self.batch_size = batch_size
+        self.N = len(self.dataset)
+        self.shape_rgb = shape_rgb
+        self.shape_rgbd = (batch_size, 480, 640, 5)
+        self.shape_depth = shape_depth
+        self.maxDepth = 1000.0 #cm
+
+    def __len__(self):
+        return int(np.ceil(self.N / float(self.batch_size)))
+
+    def __getitem__(self, idx):
+        batch_x, batch_y = np.zeros( self.shape_rgbd ), np.zeros( self.shape_depth )
+        for i in range(self.batch_size):            
+            index = min((idx * self.batch_size) + i, self.N-1)
+
+            sample = self.dataset[index]
+
+            x = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] )).reshape(480,640,3)/255,0,1)
+
+            iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*100,10.0,1000.0).reshape(480,640,1), maxDepth=self.maxDepth)
+            vm = np.array(Image.open(os.path.join(self.data_root, sample[0]).replace('image', 'validity_map')), dtype=np.float32).reshape(480,640,1)
+            assert(np.all(np.unique(vm) == [0, 256]))
+            vm[vm > 0] = 1
+
+            y = np.asarray(np.asarray(Image.open( self.data_root+"/"+sample[1] ))/256.0)
+            y = np.clip(y.reshape(480,640,1)*100, 10.0, 1000.0) # fill missing pixels and convert to cm
+            y = DepthNorm(y, maxDepth=self.maxDepth)
+
+            batch_x[i] = np.stack([x[:,:,0], x[:,:,1], x[:,:,2], iz, vm], axis=-1)
             batch_y[i] = nyu_resize(y, 240)
 
             # DEBUG:

@@ -127,13 +127,18 @@ def load_test_data(test_data_zip_file='nyu_test.zip'):
     print('Test data loaded.\n')
     return {'rgb':rgb, 'depth':depth, 'crop':crop}
 
-def load_void_test_data(void_data_path='/home/mikkel/data/void_release', use_sparse_depth=False, dont_interpolate=False):
+def load_void_test_data(void_data_path='/home/mikkel/data/void_release', channels=3, use_sparse_depth=False, dont_interpolate=False):
     void_test_rgb = list(line.strip() for line in open(void_data_path+'/void_150/test_image.txt'))
     void_test_depth = list(line.strip() for line in open(void_data_path+'/void_150/test_ground_truth.txt'))
 
     images = []
+
     for rgb_path in void_test_rgb:
         img = np.asarray(Image.open( void_data_path+"/"+rgb_path )).reshape(480,640,3)
+        if channels == 5:
+            iz = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth')))/256.0/10.0,0,1).reshape(480,640)*255
+            vm = np.array(Image.open(os.path.join(void_data_path, rgb_path).replace('image', 'validity_map')), dtype=np.float32).reshape(480,640)*255
+            img = np.stack([img[:,:,0], img[:,:,1], img[:,:,2], iz, vm], axis=-1)
         images.append(img)
     inds = np.arange(len(images)).tolist()
     images = [images[i] for i in inds]
@@ -274,7 +279,7 @@ def compute_errors(gt, pred, min_depth=0.1, max_depth=10.0):
     log_10 = (np.abs(np.log10(gt)-np.log10(pred))).mean()
     rmse_log = (np.log(gt) - np.log(pred)) ** 2
     rmse_log = np.sqrt(rmse_log.mean())
-    
+
     mae = np.mean(np.abs(gt - pred))
     rmse = (gt - pred) ** 2
     rmse = np.sqrt(rmse.mean())
