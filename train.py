@@ -26,6 +26,7 @@ parser.add_argument('--mindepth', type=float, default=10.0, help='Minimum of inp
 parser.add_argument('--maxdepth', type=float, default=1000.0, help='Maximum of input depths')
 parser.add_argument('--name', type=str, default='densedepth_nyu', help='A name to attach to the training session')
 parser.add_argument('--checkpoint', type=str, default='', help='Start training from an existing model.')
+parser.add_argument('--weights', type=str, default='', help='Start training with pretrained weights.')
 parser.add_argument('--full', dest='full', action='store_true', help='Full training with metrics, checkpoints, and image samples.')
 parser.add_argument('--resnet50', dest='resnet50', action='store_true', help='Train a Resnet 50 model.')
 
@@ -49,14 +50,15 @@ elif args.resnet50:  # if want a resnet model
     model = create_model_resnet(existing=args.checkpoint)
 else:
     model = create_model( existing=args.checkpoint)
-
+if args.weights != '':
+    model.load_weights(args.weights)
 # Data loaders
 if args.data == 'nyu': train_generator, test_generator = get_nyu_train_test_data( args.bs )
 if args.data == 'unreal': train_generator, test_generator = get_unreal_train_test_data( args.bs )
 if args.data == 'void': train_generator, test_generator = get_void_train_test_data( args.bs, mode=args.voidmode )
 # Training session details
 runID = str(int(time.time())) + '-n' + str(len(train_generator)) + '-e' + str(args.epochs) + '-bs' + str(args.bs) + '-lr' + str(args.lr) + '-' + args.name
-outputPath = './models/'
+outputPath = '/home/mikkel/models/'
 runPath = outputPath + runID
 pathlib.Path(runPath).mkdir(parents=True, exist_ok=True)
 print('Output: ' + runPath)
