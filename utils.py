@@ -329,7 +329,7 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
             else:
                 predictions.append(prediction)
             testSetDepths.append(   true_y[j]   )
-        print("tested", (i+1)*bs, "out of", N, "test images")
+        #print("tested", (i+1)*bs, "out of", N, "test images")
 
     predictions = np.stack(predictions, axis=0)
     testSetDepths = np.stack(testSetDepths, axis=0)
