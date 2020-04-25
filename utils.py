@@ -137,7 +137,7 @@ def load_void_test_data(void_data_path='/home/mikkel/data/void_release', channel
         img = np.asarray(Image.open( void_data_path+"/"+rgb_path )).reshape(480,640,3)
         if channels == 5:
             #iz = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth')))/256.0/10.0,0,1)*255
-            iz = np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*255
+            iz = np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth') ))/256.0*255
             vm = np.array(Image.open(os.path.join(void_data_path, rgb_path).replace('image', 'validity_map')), dtype=np.float32)*255
             img = np.stack([img[:,:,0], img[:,:,1], img[:,:,2], iz, vm], axis=-1)
         images.append(img)
