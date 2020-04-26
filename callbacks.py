@@ -6,6 +6,7 @@ import keras
 from keras import backend as K
 from utils import DepthNorm, predict, evaluate
 import tensorflow as tf
+import settings
 
 def make_image(tensor):
     height, width, channel = tensor.shape
@@ -35,7 +36,7 @@ def get_nyu_callbacks(model, basemodel, train_generator, test_generator, test_se
                 from skimage.transform import resize
                 plasma = plt.get_cmap('plasma')
 
-                minDepth, maxDepth = 10, 1000
+                minDepth, maxDepth = settings.MIN_DEPTH*settings.DEPTH_SCALE, settings.MAX_DEPTH*settings.DEPTH_SCALE
 
                 train_samples = []
                 test_samples = []
@@ -44,8 +45,8 @@ def get_nyu_callbacks(model, basemodel, train_generator, test_generator, test_se
                     x_train, y_train = train_generator.__getitem__(self.train_idx[i], False)
                     x_test, y_test = test_generator[self.test_idx[i]]
 
-                    x_train, y_train = x_train[0], np.clip(DepthNorm(y_train[0], maxDepth=1000), minDepth, maxDepth) / maxDepth 
-                    x_test, y_test = x_test[0], np.clip(DepthNorm(y_test[0], maxDepth=1000), minDepth, maxDepth) / maxDepth
+                    x_train, y_train = x_train[0], np.clip(DepthNorm(y_train[0], maxDepth=maxDepth), minDepth, maxDepth) / maxDepth 
+                    x_test, y_test = x_test[0], np.clip(DepthNorm(y_test[0], maxDepth=maxDepth), minDepth, maxDepth) / maxDepth
 
                     h, w = y_train.shape[0], y_train.shape[1]
 
@@ -102,7 +103,7 @@ def get_void_callbacks(model, basemodel, train_generator, test_generator, test_s
                 from skimage.transform import resize
                 plasma = plt.get_cmap('plasma')
 
-                minDepth, maxDepth = 10, 1000
+                minDepth, maxDepth = settings.MIN_DEPTH*settings.DEPTH_SCALE, settings.MAX_DEPTH*settings.DEPTH_SCALE
 
                 train_samples = []
                 test_samples = []

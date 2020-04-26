@@ -2,15 +2,19 @@ import numpy as np
 from PIL import Image
 import os
 from scipy.interpolate import LinearNDInterpolator
+import settings
 
 def nyu_resize(img, resolution=480, padding=6):
     from skimage.transform import resize
     return resize(img, (resolution, int(resolution*4/3)), preserve_range=True, mode='reflect', anti_aliasing=True )
 
 def DepthNorm(x, maxDepth):
-    return maxDepth / x
+    if settings.USE_DEPTHNORM: 
+        return maxDepth / x
+    else: 
+        return x
 
-def predict(model, images, minDepth=10, maxDepth=1000, batch_size=2):
+def predict(model, images, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE, batch_size=2):
     # Support multiple RGBs, one RGB image, even grayscale 
     if not isinstance(images, list):
         #print("rgb", images[0].shape, "sparse:", images[1].shape)
@@ -92,7 +96,7 @@ def save_images(filename, outputs, inputs=None, gt=None, is_colormap=True, is_re
     im = Image.fromarray(np.uint8(montage*255))
     im.save(filename)
 
-def compute_scaling_factor(gt, pr, min_depth=0.1, max_depth=10.0):
+def compute_scaling_factor(gt, pr, min_depth=settings.MIN_DEPTH, max_depth=settings.MAX_DEPTH):
     gt = np.array(gt, dtype=np.float64).reshape(-1)
     pr = np.array(pr, dtype=np.float64).reshape(-1)
 
@@ -100,7 +104,7 @@ def compute_scaling_factor(gt, pr, min_depth=0.1, max_depth=10.0):
     v = (gt > min_depth) & (gt < max_depth)
     return np.median(gt[v] / pr[v])
 
-def compute_scaling_array(gt, pr, min_depth=0.1, max_depth=10.0):
+def compute_scaling_array(gt, pr, min_depth=settings.MIN_DEPTH, max_depth=settings.MAX_DEPTH):
     gt = np.array(gt, dtype=np.float64)
     pr = np.array(pr, dtype=np.float64)
     rows, cols = gt.shape
@@ -169,8 +173,8 @@ def load_void_imu_test_data(void_data_path='/home/mikkel/data/void_release'):
     images = []
     for rgb_path in void_test_rgb:
         x1 = np.asarray(Image.open( os.path.join(void_data_path, rgb_path)).convert('L')).reshape(480,640)
-        x2 = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'prediction')))/256.0/10.0,0,1).reshape(480,640)*255
-        x3 = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth')))/256.0/10.0,0,1).reshape(480,640)*255
+        x2 = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'prediction')))/256.0/settings.MAX_DEPTH,0,1).reshape(480,640)*255
+        x3 = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth')))/256.0/settings.MAX_DEPTH,0,1).reshape(480,640)*255
         images.append(np.stack([x1, x2, x3], axis=-1))
     inds = np.arange(len(images)).tolist()
     images = [images[i] for i in inds]
@@ -192,7 +196,7 @@ def load_void_rgb_sparse_test_data(void_data_path='/home/mikkel/data/void_releas
     sparse_depth_and_vm = []
     for rgb_path in void_test_rgb:
         im = np.asarray(Image.open( os.path.join(void_data_path, rgb_path)) ).reshape(480,640,3)
-        iz = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth') ))/256.0/10.0,0,1)*255
+        iz = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth') ))/256.0/settings.MAX_DEPTH,0,1)*255
         vm = np.array(Image.open(os.path.join(void_data_path, rgb_path).replace('image', 'validity_map')), dtype=np.float32)*255
         images.append(im)
         sparse_depth_and_vm.append(np.stack([iz, vm], axis=-1))
@@ -217,8 +221,8 @@ def load_void_pred_sparse_test_data(void_data_path='/home/mikkel/data/void_relea
     init_preds = []
     sparse_depths = []
     for rgb_path in void_test_rgb:
-        init_pred = nyu_resize(DepthNorm(np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'prediction') ))/256.0*100,10.0,1000.0).reshape(480,640,1), maxDepth=1000), 240)*255
-        sparse_depth = nyu_resize(DepthNorm(np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth') ))/256.0*100,10.0,1000.0).reshape(480,640,1), maxDepth=1000), 240)*255
+        init_pred = nyu_resize(DepthNorm(np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'prediction') ))/256.0*settings.DEPTH_SCALE,settings.MIN_DEPTH*settings.DEPTH_SCALE,settings.MAX_DEPTH*settings.DEPTH_SCALE).reshape(480,640,1), maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE), 240)*255
+        sparse_depth = nyu_resize(DepthNorm(np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth') ))/256.0*settings.DEPTH_SCALE,settings.MIN_DEPTH*settings.DEPTH_SCALE,settings.MAX_DEPTH*settings.DEPTH_SCALE).reshape(480,640,1), maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE), 240)*255
         init_preds.append(init_pred)
         sparse_depths.append(sparse_depth)
     inds = np.arange(len(init_preds)).tolist()
@@ -259,7 +263,7 @@ def scale_invariant(gt, pr):
     return np.sqrt(np.sum(np.square(log_diff)) / num_pixels \
         - np.square(np.sum(log_diff)) / np.square(num_pixels))
 
-def compute_errors(gt, pred, min_depth=0.1, max_depth=10.0):
+def compute_errors(gt, pred, min_depth=settings.MIN_DEPTH, max_depth=settings.MAX_DEPTH):
     if isinstance(pred, list):
         scinv_list = []
         for i in range(len(gt)):
@@ -302,10 +306,10 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
 
         # Compute results
         true_y = depth[(i)*bs:(i+1)*bs,:,:]
-        pred_y = scale_up(2, predict(model, x/255, minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
+        pred_y = scale_up(2, predict(model, x/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, batch_size=bs)[:,:,:,0]) * settings.MAX_DEPTH
         
         # Test time augmentation: mirror image estimate
-        pred_y_flip = scale_up(2, predict(model, x[...,::-1,:]/255, minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
+        pred_y_flip = scale_up(2, predict(model, x[...,::-1,:]/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, batch_size=bs)[:,:,:,0]) * settings.MAX_DEPTH
 
         # Crop based on Eigen et al. crop
         true_y = true_y[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
@@ -358,7 +362,7 @@ def evaluate_rgb_sparse(model, rgb, sparse_depth_and_vm, depth, crop, batch_size
 
         # Compute results
         true_y = depth[(i)*bs:(i+1)*bs,:,:]
-        pred_y = scale_up(2, predict(model, [x/255, iz_and_vm/255], minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
+        pred_y = scale_up(2, predict(model, x/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, batch_size=bs)[:,:,:,0]) * settings.MAX_DEPTH
         
         # Test time augmentation: mirror image estimate
         #pred_y_flip = scale_up(2, predict(model, [x[...,::-1,:]/255, iz_and_vm[...,::-1,:]/255], minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
@@ -401,7 +405,7 @@ def evaluate_pred_sparse(model, init_preds, sparse_depths, depth, crop, batch_si
 
         # Compute results
         true_y = depth[(i)*bs:(i+1)*bs,:,:]
-        pred_y = scale_up(2, predict(model, [x/255, iz/255], minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
+        pred_y = scale_up(2, predict(model, x/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, batch_size=bs)[:,:,:,0]) * settings.MAX_DEPTH
         
         # Test time augmentation: mirror image estimate
         #pred_y_flip = scale_up(2, predict(model, [x[...,::-1,:]/255, iz_and_vm[...,::-1,:]/255], minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0

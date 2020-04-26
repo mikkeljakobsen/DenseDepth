@@ -8,7 +8,6 @@ from model import create_model, create_two_branch_model, create_two_branch_model
 from model_resnet import create_model_resnet
 from data import get_nyu_train_test_data, get_unreal_train_test_data, get_void_train_test_data
 from callbacks import get_nyu_callbacks, get_void_callbacks
-
 from keras.optimizers import Adam
 from keras.utils import multi_gpu_model
 from keras.utils.vis_utils import plot_model
