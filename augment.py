@@ -41,7 +41,8 @@ class BasicPolicy(object):
             img = img[...,::-1,:]
             depth = depth[...,::-1,:]
             if not (iz is None):
-                iz = iz[...,::-1,:]
+                iz = iz[...,::-1,:]            
+            if not (vm is None):
                 vm = vm[...,::-1,:]
 
         # 3) Flip image vertically

@@ -26,7 +26,9 @@ def get_nyu_callbacks(model, basemodel, train_generator, test_generator, test_se
             super().__init__(log_dir=log_dir)
 
             self.num_samples = 6
+            np.random.seed(1)
             self.train_idx = np.random.randint(low=0, high=len(train_generator), size=10)
+            np.random.seed(1)
             self.test_idx = np.random.randint(low=0, high=len(test_generator), size=10)
 
         def on_epoch_end(self, epoch, logs=None):            
@@ -93,7 +95,9 @@ def get_void_callbacks(model, basemodel, train_generator, test_generator, test_s
             super().__init__(log_dir=log_dir)
 
             self.num_samples = 6
+            np.random.seed(1)
             self.train_idx = np.random.randint(low=0, high=len(train_generator), size=10)
+            np.random.seed(1)
             self.test_idx = np.random.randint(low=0, high=len(test_generator), size=10)
 
         def on_epoch_end(self, epoch, logs=None):            
