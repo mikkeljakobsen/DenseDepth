@@ -306,10 +306,10 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
 
         # Compute results
         true_y = depth[(i)*bs:(i+1)*bs,:,:]
-        pred_y = scale_up(2, predict(model, x/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, batch_size=bs)[:,:,:,0]) * settings.MAX_DEPTH
+        pred_y = scale_up(2, predict(model, x/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE, batch_size=bs)[:,:,:,0]) * settings.MAX_DEPTH
         
         # Test time augmentation: mirror image estimate
-        pred_y_flip = scale_up(2, predict(model, x[...,::-1,:]/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, batch_size=bs)[:,:,:,0]) * settings.MAX_DEPTH
+        pred_y_flip = scale_up(2, predict(model, x[...,::-1,:]/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MMAX_DEPTH*settings.DEPTH_SCALE, batch_size=bs)[:,:,:,0]) * settings.MAX_DEPTH
 
         # Crop based on Eigen et al. crop
         true_y = true_y[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
@@ -362,7 +362,7 @@ def evaluate_rgb_sparse(model, rgb, sparse_depth_and_vm, depth, crop, batch_size
 
         # Compute results
         true_y = depth[(i)*bs:(i+1)*bs,:,:]
-        pred_y = scale_up(2, predict(model, x/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, batch_size=bs)[:,:,:,0]) * settings.MAX_DEPTH
+        pred_y = scale_up(2, predict(model, x/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE, batch_size=bs)[:,:,:,0]) * settings.MAX_DEPTH
         
         # Test time augmentation: mirror image estimate
         #pred_y_flip = scale_up(2, predict(model, [x[...,::-1,:]/255, iz_and_vm[...,::-1,:]/255], minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
@@ -405,7 +405,7 @@ def evaluate_pred_sparse(model, init_preds, sparse_depths, depth, crop, batch_si
 
         # Compute results
         true_y = depth[(i)*bs:(i+1)*bs,:,:]
-        pred_y = scale_up(2, predict(model, x/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, batch_size=bs)[:,:,:,0]) * settings.MAX_DEPTH
+        pred_y = scale_up(2, predict(model, x/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE, batch_size=bs)[:,:,:,0]) * settings.MAX_DEPTH
         
         # Test time augmentation: mirror image estimate
         #pred_y_flip = scale_up(2, predict(model, [x[...,::-1,:]/255, iz_and_vm[...,::-1,:]/255], minDepth=10, maxDepth=1000, batch_size=bs)[:,:,:,0]) * 10.0
