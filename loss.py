@@ -2,9 +2,9 @@ import keras.backend as K
 import tensorflow as tf
 import settings
 
-def depth_loss_function(y_true, y_pred, theta=0.1, maxDepthVal=settings.MAX_DEPTH/settings.MIN_DEPTH):
-    if not settings.USE_DEPTHNORM:
-        maxDepthVal = settings.MAX_DEPTH*settings.DEPTH_SCALE
+def depth_loss_function(y_true, y_pred, theta=0.1, maxDepthVal=settings.MAX_DEPTH*settings.DEPTH_SCALE):
+    if settings.USE_DEPTHNORM:
+        maxDepthVal = settings.MAX_DEPTH/settings.MIN_DEPTH
     # Point-wise depth
     l_depth = K.mean(K.abs(y_pred - y_true), axis=-1)
 

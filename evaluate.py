@@ -3,7 +3,6 @@ import glob
 import time
 import argparse
 from utils import load_void_imu_test_data, load_void_test_data, load_test_data, load_void_rgb_sparse_test_data, load_void_pred_sparse_test_data
-
 # Kerasa / TensorFlow
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '5'
 from keras.models import load_model
