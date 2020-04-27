@@ -28,6 +28,7 @@ parser.add_argument('--checkpoint', type=str, default='', help='Start training f
 parser.add_argument('--weights', type=str, default='', help='Start training with pretrained weights.')
 parser.add_argument('--full', dest='full', action='store_true', help='Full training with metrics, checkpoints, and image samples.')
 parser.add_argument('--resnet50', dest='resnet50', action='store_true', help='Train a Resnet 50 model.')
+parser.add_argument('--dont-interpolate', default=False, dest='dont_interpolate', action='store_true', help='Use raw sparse depth maps.')
 
 args = parser.parse_args()
 
@@ -43,10 +44,10 @@ channels = 3
 if args.data == 'void' and args.voidmode == 'two-branch':
     model = create_two_branch_model_late_fusion( existing=args.checkpoint)
 elif args.data == 'void' and args.voidmode == '5channel':
-    model = create_model(existing=args.checkpoint, channels=5)
+    model = create_model(existing=args.checkpoint, channels=5, dont_interpolate=args.dont_interpolate)
     channels = 5
 elif args.data == 'void' and args.voidmode == '4channel':
-    model = create_model(existing=args.checkpoint, channels=4)
+    model = create_model(existing=args.checkpoint, channels=4, dont_interpolate=args.dont_interpolate)
     channels = 4
 elif args.resnet50:  # if want a resnet model
     model = create_model_resnet(existing=args.checkpoint)
@@ -98,7 +99,7 @@ print('Ready for training!\n')
 callbacks = []
 if args.data == 'nyu': callbacks = get_nyu_callbacks(model, basemodel, train_generator, test_generator, load_test_data() if args.full else None , runPath)
 if args.data == 'unreal': callbacks = get_nyu_callbacks(model, basemodel, train_generator, test_generator, load_test_data() if args.full else None , runPath)
-if args.data == 'void': callbacks = get_void_callbacks(model, basemodel, train_generator, test_generator, load_void_test_data(channels=channels) if args.full else None , runPath)
+if args.data == 'void': callbacks = get_void_callbacks(model, basemodel, train_generator, test_generator, load_void_test_data(channels=channels, dont_interpolate=args.dont_interpolate) if args.full else None , runPath)
 if args.data == 'void-imu': callbacks = get_void_callbacks(model, basemodel, train_generator, test_generator, None , runPath)
 
 # Start training

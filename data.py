@@ -49,7 +49,7 @@ def get_void_data(batch_size, void_data_path):
     shape_depth = (batch_size, 240, 320, 1)
     return void_train[:48414], void_train[48414:], shape_rgb, shape_depth
 
-def get_void_train_test_data(batch_size, void_data_path='/home/mikkel/data/void_release', mode='normal'):
+def get_void_train_test_data(batch_size, void_data_path='/home/mikkel/data/void_release', mode='normal', dont_interpolate=False):
     void_train, void_test, shape_rgb, shape_depth = get_void_data(batch_size, void_data_path)
     if mode == 'normal':
         train_generator = VOID_BasicAugmentRGBSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
@@ -58,11 +58,11 @@ def get_void_train_test_data(batch_size, void_data_path='/home/mikkel/data/void_
         train_generator = VOID_ImuAidedRGBSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
         test_generator = VOID_ImuAidedRGBSequence(void_data_path, void_test, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
     elif mode == '4channel':
-        train_generator = VOID_BasicAugmentRGBDSequence(void_data_path, void_train, batch_size=batch_size, shape_depth=shape_depth, channels=4)
-        test_generator = VOID_BasicRGBDSequence(void_data_path, void_test, batch_size=batch_size, shape_depth=shape_depth, channels=4)
+        train_generator = VOID_BasicAugmentRGBDSequence(void_data_path, void_train, batch_size=batch_size, shape_depth=shape_depth, channels=4, dont_interpolate=dont_interpolate)
+        test_generator = VOID_BasicRGBDSequence(void_data_path, void_test, batch_size=batch_size, shape_depth=shape_depth, channels=4, dont_interpolate=dont_interpolate)
     elif mode == '5channel':
-        train_generator = VOID_BasicAugmentRGBDSequence(void_data_path, void_train, batch_size=batch_size, shape_depth=shape_depth, channels=5)
-        test_generator = VOID_BasicRGBDSequence(void_data_path, void_test, batch_size=batch_size, shape_depth=shape_depth, channels=5)
+        train_generator = VOID_BasicAugmentRGBDSequence(void_data_path, void_train, batch_size=batch_size, shape_depth=shape_depth, channels=5, dont_interpolate=dont_interpolate)
+        test_generator = VOID_BasicRGBDSequence(void_data_path, void_test, batch_size=batch_size, shape_depth=shape_depth, channels=5, dont_interpolate=dont_interpolate)
     elif mode == 'pred+sparse':
         train_generator = VOID_InitPredSparseSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
         test_generator = VOID_InitPredSparseSequence(void_data_path, void_test, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
@@ -149,7 +149,7 @@ class VOID_BasicRGBSequence(Sequence):
         return batch_x, batch_y
 
 class VOID_BasicAugmentRGBDSequence(Sequence):
-    def __init__(self, data_root, data_paths, batch_size, shape_depth, channels=5, is_flip=False, is_addnoise=False, is_erase=False):
+    def __init__(self, data_root, data_paths, batch_size, shape_depth, channels=5, is_flip=False, is_addnoise=False, is_erase=False, dont_interpolate=False):
         self.data_root = data_root
         self.dataset = data_paths
         self.policy = BasicPolicy( color_change_ratio=0.50, mirror_ratio=0.50, flip_ratio=0.0 if not is_flip else 0.2, 
@@ -160,6 +160,7 @@ class VOID_BasicAugmentRGBDSequence(Sequence):
         self.shape_depth = shape_depth
         self.minDepth = settings.MIN_DEPTH*settings.DEPTH_SCALE #cm
         self.maxDepth = settings.MAX_DEPTH*settings.DEPTH_SCALE #cm
+        self.dont_interpolate = dont_interpolate
 
         from sklearn.utils import shuffle
         self.dataset = shuffle(self.dataset, random_state=0)
@@ -181,7 +182,10 @@ class VOID_BasicAugmentRGBDSequence(Sequence):
             x = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] )).reshape(480,640,3)/255,0,1)
 
             #iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*100,10.0,1000.0), maxDepth=self.maxDepth)
-            iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*settings.DEPTH_SCALE, self.minDepth, self.maxDepth), maxDepth=self.maxDepth)
+            if self.dont_interpolate:
+                iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'sparse_depth') ))/256.0*settings.DEPTH_SCALE, self.minDepth, self.maxDepth), maxDepth=self.maxDepth)
+            else:
+                iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*settings.DEPTH_SCALE, self.minDepth, self.maxDepth), maxDepth=self.maxDepth)
             vm = None
             if self.channels == 5:
                 vm = np.array(Image.open(os.path.join(self.data_root, sample[0]).replace('image', 'validity_map')), dtype=np.float32)
@@ -208,7 +212,7 @@ class VOID_BasicAugmentRGBDSequence(Sequence):
         return batch_x, batch_y
 
 class VOID_BasicRGBDSequence(Sequence):
-    def __init__(self, data_root, data_paths, batch_size, shape_depth, channels=5):
+    def __init__(self, data_root, data_paths, batch_size, shape_depth, channels=5, dont_interpolate=False):
         self.data_root = data_root
         self.dataset = data_paths
         self.batch_size = batch_size
@@ -218,6 +222,7 @@ class VOID_BasicRGBDSequence(Sequence):
         self.shape_depth = shape_depth
         self.minDepth = settings.MIN_DEPTH*settings.DEPTH_SCALE #cm
         self.maxDepth = settings.MAX_DEPTH*settings.DEPTH_SCALE #cm
+        self.dont_interpolate = dont_interpolate
 
     def __len__(self):
         return int(np.ceil(self.N / float(self.batch_size)))
@@ -232,7 +237,10 @@ class VOID_BasicRGBDSequence(Sequence):
             x = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] )).reshape(480,640,3)/255,0,1)
 
             #iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*100,10.0,1000.0), maxDepth=self.maxDepth)
-            iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*settings.DEPTH_SCALE, self.minDepth, self.maxDepth), maxDepth=self.maxDepth)
+            if self.dont_interpolate:
+                iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'sparse_depth') ))/256.0*settings.DEPTH_SCALE, self.minDepth, self.maxDepth), maxDepth=self.maxDepth)
+            else:
+                iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*settings.DEPTH_SCALE, self.minDepth, self.maxDepth), maxDepth=self.maxDepth)
             vm = None
             y = np.asarray(np.asarray(Image.open( self.data_root+"/"+sample[1] ))/256.0)
             y = np.clip(y.reshape(480,640,1)*settings.DEPTH_SCALE, self.minDepth, self.maxDepth) # fill missing pixels and convert to cm
