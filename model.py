@@ -17,12 +17,12 @@ def create_model(existing='', is_twohundred=False, is_halffeatures=True, channel
             for layer in pretrained.layers:
                 if layer.get_weights() != []:  # Skip input, pooling and no weights layers
                     target_layer = base_model.get_layer(name=layer.name)
-                    if layer.name == 'conv1/conv':
-                        kernels = layer.get_weights()[0]
-                        biases  = layer.get_weights()[1]
-                        kernels_extra_channel = np.concatenate((kernels, kernels[:,:,-1:,:]), axis=-2) # For channels_last
-                        target_layer.set_weights([kernels_extra_channel, biases])
-                    else:
+                    if layer.name != 'conv1/conv':
+                    #    kernels = layer.get_weights()[0]
+                    #    biases  = layer.get_weights()[1]
+                    #    kernels_extra_channel = np.concatenate((kernels, kernels[:,:,-1:,:]), axis=-2) # For channels_last
+                    #    target_layer.set_weights([kernels_extra_channel, biases])
+                    #else:
                         target_layer.set_weights(layer.get_weights())
         # Encoder Layers
         elif is_twohundred:
