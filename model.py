@@ -15,6 +15,7 @@ def create_model(existing='', is_twohundred=False, is_halffeatures=True, channel
             base_model = applications.DenseNet169(input_shape=(None, None, channels), include_top=False, weights=None)
             pretrained = applications.DenseNet169(input_shape=(None, None, 3), include_top=False)
             for layer in pretrained.layers:
+                print(layer.name)
                 if layer.get_weights() != []:  # Skip input, pooling and no weights layers
                     target_layer = base_model.get_layer(name=layer.name)
                     if layer.name != 'conv1/conv':
