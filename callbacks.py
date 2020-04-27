@@ -112,8 +112,8 @@ def get_void_callbacks(model, basemodel, train_generator, test_generator, test_s
                     x_train, y_train = train_generator.__getitem__(self.train_idx[i], False)
                     x_test, y_test = test_generator[self.test_idx[i]]
 
-                    x_train, y_train = x_train[0], np.clip(DepthNorm(y_train[0], maxDepth=1000), minDepth, maxDepth) / maxDepth 
-                    x_test, y_test = x_test[0], np.clip(DepthNorm(y_test[0], maxDepth=1000), minDepth, maxDepth) / maxDepth
+                    x_train, y_train = x_train[0], np.clip(DepthNorm(y_train[0], maxDepth=maxDepth), minDepth, maxDepth) / maxDepth 
+                    x_test, y_test = x_test[0], np.clip(DepthNorm(y_test[0], maxDepth=maxDepth), minDepth, maxDepth) / maxDepth
 
                     h, w = y_train.shape[0], y_train.shape[1]
 
