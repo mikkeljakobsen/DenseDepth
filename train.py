@@ -45,6 +45,9 @@ if args.data == 'void' and args.voidmode == 'two-branch':
 elif args.data == 'void' and args.voidmode == '5channel':
     model = create_model(existing=args.checkpoint, channels=5)
     channels = 5
+elif args.data == 'void' and args.voidmode == '4channel':
+    model = create_model(existing=args.checkpoint, channels=4)
+    channels = 4
 elif args.resnet50:  # if want a resnet model
     model = create_model_resnet(existing=args.checkpoint)
 else:
