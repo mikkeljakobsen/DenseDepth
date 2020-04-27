@@ -178,7 +178,7 @@ class VOID_BasicAugmentRGBDSequence(Sequence):
             x = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] )).reshape(480,640,3)/255,0,1)
 
             #iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*100,10.0,1000.0), maxDepth=self.maxDepth)
-            iz = np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0
+            iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*settings.DEPTH_SCALE, self.minDepth, self.maxDepth), maxDepth=self.maxDepth)
             vm = np.array(Image.open(os.path.join(self.data_root, sample[0]).replace('image', 'validity_map')), dtype=np.float32)
             assert(np.all(np.unique(vm) == [0, 256]))
             vm[vm > 0] = 1
@@ -224,7 +224,7 @@ class VOID_BasicRGBDSequence(Sequence):
             x = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] )).reshape(480,640,3)/255,0,1)
 
             #iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*100,10.0,1000.0), maxDepth=self.maxDepth)
-            iz = np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0
+            iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*settings.DEPTH_SCALE, self.minDepth, self.maxDepth), maxDepth=self.maxDepth)
             vm = np.array(Image.open(os.path.join(self.data_root, sample[0]).replace('image', 'validity_map')), dtype=np.float32)
             assert(np.all(np.unique(vm) == [0, 256]))
             vm[vm > 0] = 1

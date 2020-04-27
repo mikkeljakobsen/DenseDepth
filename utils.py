@@ -16,10 +16,11 @@ def DepthNorm(x, maxDepth):
 
 def predict(model, images, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE, batch_size=2):
     # Support multiple RGBs, one RGB image, even grayscale 
-    if not isinstance(images, list):
+    if isinstance(images, list):
         #print("rgb", images[0].shape, "sparse:", images[1].shape)
-        #if len(images[0].shape) < 4: images = [images[0].reshape((1, images[0].shape[0], images[0].shape[1], images[0].shape[2])), images[1].reshape((1, images[1].shape[0], images[1].shape[1], images[1].shape[2]))]
-    #else:
+        for i in range(len(images)):
+            if len(images[i].shape) < 4: images[i] = images[i].reshape((1, images[i].shape[0], images[i].shape[1], images[i].shape[2]))
+    else:
         #print(images.shape)
         if len(images.shape) < 3: images = np.stack((images,images,images), axis=2)
         if len(images.shape) < 4: images = images.reshape((1, images.shape[0], images.shape[1], images.shape[2]))
@@ -141,7 +142,7 @@ def load_void_test_data(void_data_path='/home/mikkel/data/void_release', channel
         img = np.asarray(Image.open( void_data_path+"/"+rgb_path )).reshape(480,640,3)
         if channels == 5:
             #iz = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth')))/256.0/10.0,0,1)*255
-            iz = np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth') ))/256.0/(settings.MAX_DEPTH)*255
+            iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth') ))/256.0*settings.DEPTH_SCALE, settings.MIN_DEPTH*settings.DEPTH_SCALE, settings.MAX_DEPTH*settings.DEPTH_SCALE), maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE)*255
             vm = np.array(Image.open(os.path.join(void_data_path, rgb_path).replace('image', 'validity_map')), dtype=np.float32)*255
             img = np.stack([img[:,:,0], img[:,:,1], img[:,:,2], iz, vm], axis=-1)
         images.append(img)
@@ -196,7 +197,7 @@ def load_void_rgb_sparse_test_data(void_data_path='/home/mikkel/data/void_releas
     sparse_depth_and_vm = []
     for rgb_path in void_test_rgb:
         im = np.asarray(Image.open( os.path.join(void_data_path, rgb_path)) ).reshape(480,640,3)
-        iz = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth') ))/256.0/settings.MAX_DEPTH,0,1)*255
+        iz = np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth') ))/256.0,0,1)*255
         vm = np.array(Image.open(os.path.join(void_data_path, rgb_path).replace('image', 'validity_map')), dtype=np.float32)*255
         images.append(im)
         sparse_depth_and_vm.append(np.stack([iz, vm], axis=-1))
@@ -309,7 +310,7 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
         pred_y = scale_up(2, predict(model, x/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE, batch_size=bs)[:,:,:,0]) * settings.MAX_DEPTH
         
         # Test time augmentation: mirror image estimate
-        pred_y_flip = scale_up(2, predict(model, x[...,::-1,:]/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MMAX_DEPTH*settings.DEPTH_SCALE, batch_size=bs)[:,:,:,0]) * settings.MAX_DEPTH
+        pred_y_flip = scale_up(2, predict(model, x[...,::-1,:]/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE, batch_size=bs)[:,:,:,0]) * settings.MAX_DEPTH
 
         # Crop based on Eigen et al. crop
         true_y = true_y[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
