@@ -44,10 +44,10 @@ channels = 3
 if args.data == 'void' and args.voidmode == 'two-branch':
     model = create_two_branch_model_late_fusion( existing=args.checkpoint)
 elif args.data == 'void' and args.voidmode == '5channel':
-    model = create_model(existing=args.checkpoint, channels=5, dont_interpolate=args.dont_interpolate)
+    model = create_model(existing=args.checkpoint, channels=5)
     channels = 5
 elif args.data == 'void' and args.voidmode == '4channel':
-    model = create_model(existing=args.checkpoint, channels=4, dont_interpolate=args.dont_interpolate)
+    model = create_model(existing=args.checkpoint, channels=4)
     channels = 4
 elif args.resnet50:  # if want a resnet model
     model = create_model_resnet(existing=args.checkpoint)
@@ -58,7 +58,7 @@ if args.weights != '':
 # Data loaders
 if args.data == 'nyu': train_generator, test_generator = get_nyu_train_test_data( args.bs )
 if args.data == 'unreal': train_generator, test_generator = get_unreal_train_test_data( args.bs )
-if args.data == 'void': train_generator, test_generator = get_void_train_test_data( args.bs, mode=args.voidmode )
+if args.data == 'void': train_generator, test_generator = get_void_train_test_data( args.bs, mode=args.voidmode, dont_interpolate=args.dont_interpolate )
 # Training session details
 runID = str(int(time.time())) + '-n' + str(len(train_generator)) + '-e' + str(args.epochs) + '-bs' + str(args.bs) + '-lr' + str(args.lr) + '-' + args.name
 outputPath = '/home/mikkel/models/'
