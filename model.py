@@ -114,8 +114,8 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
 
         input_rgbd = Input(shape=(None, None, 4), name='input_rgbd')
 
-        input_rgb = crop(2, 0, 3)(input_rgbd)
-        input_sparse = crop(2, 3, 4)(input_rgbd)
+        input_rgb = crop(3, 0, 3)(input_rgbd)
+        input_sparse = crop(3, 3, 4)(input_rgbd)
         base_model_output = base_model(input_rgb)
         base_model_sz_input = Conv2D(3, (3,3), padding='same')(input_sparse)
         base_model_sz_output = base_model_sz(base_model_sz_input)
