@@ -42,7 +42,8 @@ else:
 channels = 3
 # Create the model
 if args.data == 'void' and args.voidmode == 'two-branch':
-    model = create_two_branch_model_late_fusion( existing=args.checkpoint)
+    model = create_two_branch_model( existing=args.checkpoint)
+    channels = 4
 elif args.data == 'void' and args.voidmode == '5channel':
     model = create_model(existing=args.checkpoint, channels=5)
     channels = 5

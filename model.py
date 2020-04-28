@@ -19,11 +19,6 @@ def create_model(existing='', is_twohundred=False, is_halffeatures=True, channel
                 if layer.get_weights() != []:  # Skip input, pooling and no weights layers
                     target_layer = base_model.get_layer(name=layer.name)
                     if layer.name != 'conv1/conv':
-                    #    kernels = layer.get_weights()[0]
-                    #    biases  = layer.get_weights()[1]
-                    #    kernels_extra_channel = np.concatenate((kernels, kernels[:,:,-1:,:]), axis=-2) # For channels_last
-                    #    target_layer.set_weights([kernels_extra_channel, biases])
-                    #else:
                         target_layer.set_weights(layer.get_weights())
         # Encoder Layers
         elif is_twohundred:
@@ -92,13 +87,19 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
 
         # Encoder Layers
         if is_twohundred:
-            base_model = applications.DenseNet201(input_shape=(None, None, 3), include_top=False, weights=None)
-            base_model_sz = applications.DenseNet201(input_shape=(None, None, 2), include_top=False, weights=None)
+            base_model = applications.DenseNet201(input_shape=(None, None, 3), include_top=False, weights='imagenet')
+            base_model_sz = applications.DenseNet201(input_shape=(None, None, 3), include_top=False, weights='imagenet')
         else:
-            base_model = applications.DenseNet169(input_shape=(None, None, 3), include_top=False, weights=None)
-            base_model_sz = applications.DenseNet169(input_shape=(None, None, 2), include_top=False, weights=None)
+            base_model = applications.DenseNet169(input_shape=(None, None, 3), include_top=False, weights='imagenet')
+            base_model_sz = applications.DenseNet169(input_shape=(None, None, 3), include_top=False, weights='imagenet')
 
         print('Base model loaded.')
+        input_rgbd = Input(shape=(None, None, 4), name='input_rgbd')
+        input_rgb = input_rgbd[:, :, :3]
+        base_model_output = base_model(input_rgb)
+        input_sparse = input_rgbd[:, :, 3:]
+        base_model_sz_input = Conv2D(3, (3,3), padding='same')(input_sparse)
+        base_model_sz_output = base_model_sz(base_model_sz_input)
 
         # Layer freezing?
         for layer in base_model.layers: 
@@ -108,7 +109,7 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
             layer.name = layer.name + str("_sz")
 
         # Starting point for decoder
-        encoder_output = concatenate([base_model.output, base_model_sz.output], axis=-1)
+        encoder_output = concatenate([base_model_output, base_model_sz_output], axis=-1)
         base_model_output_shape = encoder_output.shape
 
         #base_model_output_shape = base_model.layers[-1].output.shape
@@ -143,7 +144,7 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
         conv3 = Conv2D(filters=1, kernel_size=3, strides=1, padding='same', name='conv3')(decoder)
 
         # Create the model
-        model = Model(inputs=[base_model.input, base_model_sz.input], outputs=conv3)
+        model = Model(inputs=input_rgbd, outputs=conv3)
     else:
         # Load model from file
         if not existing.endswith('.h5'):
