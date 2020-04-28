@@ -85,16 +85,6 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
     if len(existing) == 0:
         print('Loading base model (DenseNet)..')
 
-        # Encoder Layers
-        if is_twohundred:
-            base_model = applications.DenseNet201(input_shape=(None, None, 3), include_top=False, weights='imagenet')
-            base_model_sz = applications.DenseNet201(input_shape=(None, None, 3), include_top=False, weights='imagenet')
-        else:
-            base_model = applications.DenseNet169(input_shape=(None, None, 3), include_top=False, weights='imagenet')
-            base_model_sz = applications.DenseNet169(input_shape=(None, None, 3), include_top=False, weights='imagenet')
-
-        print('Base model loaded.')
-
         def crop(dimension, start, end):
             # Crops (or slices) a Tensor on a given dimension from start to end
             # example : to crop tensor x[:, :, 5:10]
@@ -113,12 +103,19 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
             return Lambda(func)
 
         input_rgbd = Input(shape=(None, None, 4), name='input_rgbd')
-
         input_rgb = crop(3, 0, 3)(input_rgbd)
         input_sparse = crop(3, 3, 4)(input_rgbd)
-        base_model_output = base_model(input_rgb)
         base_model_sz_input = Conv2D(3, (3,3), padding='same')(input_sparse)
-        base_model_sz_output = base_model_sz(base_model_sz_input)
+
+        # Encoder Layers
+        if is_twohundred:
+            base_model = applications.DenseNet201(input_shape=(None, None, 3), include_top=False, weights='imagenet', input_tensor=input_rgb)
+            base_model_sz = applications.DenseNet201(input_shape=(None, None, 3), include_top=False, weights='imagenet', input_tensor=base_model_sz_input)
+        else:
+            base_model = applications.DenseNet169(input_shape=(None, None, 3), include_top=False, weights='imagenet', input_tensor=input_rgb)
+            base_model_sz = applications.DenseNet169(input_shape=(None, None, 3), include_top=False, weights='imagenet', input_tensor=base_model_sz_input)
+
+        print('Base model loaded.')
 
         # Layer freezing?
         for layer in base_model.layers: 
@@ -128,7 +125,7 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
             layer.name = layer.name + str("_sz")
 
         # Starting point for decoder
-        encoder_output = concatenate([base_model_output, base_model_sz_output], axis=-1)
+        encoder_output = concatenate([base_model.output, base_model_sz.output], axis=-1)
         base_model_output_shape = encoder_output.shape
 
         #base_model_output_shape = base_model.layers[-1].output.shape
