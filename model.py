@@ -94,10 +94,29 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
             base_model_sz = applications.DenseNet169(input_shape=(None, None, 3), include_top=False, weights='imagenet')
 
         print('Base model loaded.')
+
+        def crop(dimension, start, end):
+            # Crops (or slices) a Tensor on a given dimension from start to end
+            # example : to crop tensor x[:, :, 5:10]
+            # call slice(2, 5, 10) as you want to crop on the second dimension
+            def func(x):
+                if dimension == 0:
+                    return x[start: end]
+                if dimension == 1:
+                    return x[:, start: end]
+                if dimension == 2:
+                    return x[:, :, start: end]
+                if dimension == 3:
+                    return x[:, :, :, start: end]
+                if dimension == 4:
+                    return x[:, :, :, :, start: end]
+            return Lambda(func)
+
         input_rgbd = Input(shape=(None, None, 4), name='input_rgbd')
-        input_rgb = input_rgbd[:, :, :3]
+
+        input_rgb = crop(2, 0, 3)(input_rgbd)
+        input_sparse = crop(2, 3, 4)(input_rgbd)
         base_model_output = base_model(input_rgb)
-        input_sparse = input_rgbd[:, :, 3:]
         base_model_sz_input = Conv2D(3, (3,3), padding='same')(input_sparse)
         base_model_sz_output = base_model_sz(base_model_sz_input)
 
