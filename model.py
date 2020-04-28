@@ -110,10 +110,10 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
         # Encoder Layers
         if is_twohundred:
             base_model = applications.DenseNet201(input_shape=(None, None, 3), include_top=False, weights='imagenet', input_tensor=input_rgb)
-            base_model_sz = applications.DenseNet201(input_shape=(None, None, 1), include_top=False, weights='imagenet', input_tensor=input_sparse)
+            base_model_sz = applications.DenseNet201(input_shape=(None, None, 3), include_top=False, weights='imagenet', input_tensor=concatenate([input_sparse, input_sparse, input_sparse], axis=-1))
         else:
             base_model = applications.DenseNet169(input_shape=(None, None, 3), include_top=False, weights='imagenet', input_tensor=input_rgb)
-            base_model_sz = applications.DenseNet169(input_shape=(None, None, 1), include_top=False, weights='imagenet', input_tensor=input_sparse)
+            base_model_sz = applications.DenseNet169(input_shape=(None, None, 3), include_top=False, weights='imagenet', input_tensor=concatenate([input_sparse, input_sparse, input_sparse], axis=-1))
 
         print('Base model loaded.')
 
