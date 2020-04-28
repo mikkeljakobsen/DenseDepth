@@ -105,15 +105,15 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
         input_rgbd = Input(shape=(None, None, 4), name='input_rgbd')
         input_rgb = crop(3, 0, 3)(input_rgbd)
         input_sparse = crop(3, 3, 4)(input_rgbd)
-        base_model_sz_input = Conv2D(3, (3,3), padding='same')(input_sparse)
+        #base_model_sz_input = Conv2D(3, (3,3), padding='same')(input_sparse)
 
         # Encoder Layers
         if is_twohundred:
             base_model = applications.DenseNet201(input_shape=(None, None, 3), include_top=False, weights='imagenet', input_tensor=input_rgb)
-            base_model_sz = applications.DenseNet201(input_shape=(None, None, 3), include_top=False, weights='imagenet', input_tensor=base_model_sz_input)
+            base_model_sz = applications.DenseNet201(input_shape=(None, None, 1), include_top=False, weights='imagenet', input_tensor=input_sparse)
         else:
             base_model = applications.DenseNet169(input_shape=(None, None, 3), include_top=False, weights='imagenet', input_tensor=input_rgb)
-            base_model_sz = applications.DenseNet169(input_shape=(None, None, 3), include_top=False, weights='imagenet', input_tensor=base_model_sz_input)
+            base_model_sz = applications.DenseNet169(input_shape=(None, None, 1), include_top=False, weights='imagenet', input_tensor=input_sparse)
 
         print('Base model loaded.')
 
