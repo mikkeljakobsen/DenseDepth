@@ -36,7 +36,7 @@ model = load_model(args.model, custom_objects=custom_objects, compile=False)
 print('Loading test data...', end='')
 test_set = {}
 if(args.dataset == 'custom'):
-	test_set = load_custom_test_data(path=args.path, gt_divider=args.gt_divider)
+	test_set = load_custom_test_data(path=args.path, use_sparse_depth=args.use_sparse_depth_scaling, dont_interpolate=args.dont_interpolate, channels=args.channels, gt_divider=args.gt_divider)
 elif(args.dataset == 'nyu'):
 	test_set = load_test_data()
 elif(args.dataset == 'void-imu'):
