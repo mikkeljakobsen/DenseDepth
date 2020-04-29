@@ -174,7 +174,7 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
         if not existing.endswith('.h5'):
             sys.exit('Please provide a correct model file when using [existing] argument.')
         custom_objects = {'BilinearUpSampling2D': BilinearUpSampling2D, 'depth_loss_function': depth_loss_function}
-        model = load_model(existing, custom_objects=custom_objects)
+        model = load_model(existing, custom_objects=custom_objects, compile=False)
         print('\nExisting model loaded.\n')
 
     print('Model created.')
