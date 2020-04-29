@@ -134,7 +134,7 @@ def load_custom_test_data(path, channels=3, use_sparse_depth=False, dont_interpo
                 img = np.stack([img[:,:,0], img[:,:,1], img[:,:,2], iz, vm], axis=-1)
             else:
                 img = np.stack([img[:,:,0], img[:,:,1], img[:,:,2], iz], axis=-1)
-        depth = np.asarray(Image.open( os.path.join(path, rgb_path).replace('image', 'ground_truth') ))/gt_divider. # convert from mm to m
+        depth = np.asarray(Image.open( os.path.join(path, rgb_path).replace('image', 'ground_truth') ))/gt_divider # convert from mm to m
         images.append(img)
         depths.append(depth)
 
