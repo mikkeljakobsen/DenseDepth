@@ -124,7 +124,7 @@ def compute_scaling_array(gt, pr, min_depth=settings.MIN_DEPTH, max_depth=settin
 def load_custom_test_data(path, channels=3, use_sparse_depth=False, dont_interpolate=False, gt_divider=1000.0):
     images, depths, interp_depths = [], [], []
     for rgb_path in sorted(glob.glob(os.path.join(path, "interp_depth/*.png"))):
-        img = np.asarray(Image.open( rgb_path.replace('interp_depth', 'image') )).reshape(480,640,3)
+        img = np.clip(np.asarray(Image.open( rgb_path.replace('interp_depth', 'image') ), dtype=float) / 255, 0, 1)
         if channels > 3:
             if dont_interpolate:
                 iz = DepthNorm(np.clip(np.asarray(Image.open( rgb_path.replace('interp_depth', 'sparse_depth') ))/256.0*settings.DEPTH_SCALE, settings.MIN_DEPTH*settings.DEPTH_SCALE, settings.MAX_DEPTH*settings.DEPTH_SCALE), maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE)*255
@@ -380,8 +380,8 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 #h, w = true_y[j].shape[0], true_y[j].shape[1]
                 #rgb = resize(x[j,:,:,:3], (h,w), preserve_range=True, mode='reflect', anti_aliasing=True)
                 gt = plasma(true_y[j]/10)[:,:,:3]
-                pr = plasma(prediction/10)[:,:,:3]
-                rgb = x[j,crop[0]:crop[1]+1, crop[2]:crop[3]+1,:3].copy()
+                pr = plasma(prediction[:,:,0]/10)[:,:,:3]
+                rgb = x[j,crop[0]:crop[1]+1, crop[2]:crop[3]+1,:].copy()
                 rgb = resize(rgb, (gt.shape(0), gt.shape(1)), preserve_range=True, mode='reflect', anti_aliasing=True )
                 output_img = np.vstack([rgb, gt, pr])
                 height, width, channel = output_img.shape
