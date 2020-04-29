@@ -379,10 +379,9 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 plasma = plt.get_cmap('plasma')
                 h, w = true_y[j].shape[0], true_y[j].shape[1]
                 #rgb = resize(x[j,:,:,:3], (h,w), preserve_range=True, mode='reflect', anti_aliasing=True)
-                gt = plasma(true_y[j]/10)[:,:,:3]
-                pr = prediction - np.min(prediction)
-                pr = pr / np.max(pr)
-                pr = plasma(pr)[:,:,:3]
+                gt, pr = true_y[j].copy(), prediction.copy()
+                gt = plasma(gt/10)[:,:,:3]
+                pr = plasma(pr/10)[:,:,:3]
                 img = x[j,crop[0]:crop[1]+1, crop[2]:crop[3]+1,:].copy()
                 img = resize(img, (h, w), preserve_range=True, mode='reflect', anti_aliasing=True )
                 output_img = np.vstack([img, gt, pr])
