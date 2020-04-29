@@ -379,10 +379,10 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 plasma = plt.get_cmap('plasma')
                 #h, w = true_y[j].shape[0], true_y[j].shape[1]
                 #rgb = resize(x[j,:,:,:3], (h,w), preserve_range=True, mode='reflect', anti_aliasing=True)
-                gt = plasma(true_y[j])[:,:,:3]
-                pr = plasma(prediction)[:,:,:3]
+                gt = plasma(true_y[j]/10)[:,:,:3]
+                pr = plasma(prediction/10)[:,:,:3]
                 print("rgb", x[j,:,:,:3].shape, "gt", gt.shape, "pred", pr.shape)
-                output_img = np.vstack([x[j,crop[0]:crop[1]+1, crop[2]:crop[3]+1,:3], gt, pr]) * 255
+                output_img = np.vstack([x[j,crop[0]:crop[1]+1, crop[2]:crop[3]+1,:3], gt*255, pr*255])
                 height, width, channel = output_img.shape
                 image = Image.fromarray(output_img.astype('uint8'))
                 path = "/home/mikkel/output_pred/"+str((i+1)*(j+1))+".jpg"
