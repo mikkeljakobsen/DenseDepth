@@ -384,7 +384,7 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 output_img = np.vstack([rgb, gt, pr]) * 255
                 height, width, channel = output_img.shape
                 image = Image.fromarray(output_img.astype('uint8'))
-                path = "/home/mikkel/output_pred/"+((i+1)*(j+1))+".jpg"
+                path = "/home/mikkel/output_pred/"+str((i+1)*(j+1))+".jpg"
                 if not os.path.exists(os.path.dirname(path)):
                     os.makedirs(os.path.dirname(path))
                 image.save(path)
