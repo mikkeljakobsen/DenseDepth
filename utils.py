@@ -3,6 +3,7 @@ from PIL import Image
 import os
 from scipy.interpolate import LinearNDInterpolator
 import settings
+import glob
 
 def nyu_resize(img, resolution=480, padding=6):
     from skimage.transform import resize
