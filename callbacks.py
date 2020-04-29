@@ -19,7 +19,6 @@ def make_image(tensor):
 
 def get_nyu_callbacks(model, basemodel, train_generator, test_generator, test_set, runPath):
     callbacks = []
-
     # Callback: Tensorboard
     class LRTensorBoard(keras.callbacks.TensorBoard):
         def __init__(self, log_dir):

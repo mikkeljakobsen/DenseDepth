@@ -23,6 +23,7 @@ parser.add_argument('--use-median-scaling', default=False, dest='use_median_scal
 parser.add_argument('--use-sparse-depth-scaling', default=False, dest='use_sparse_depth_scaling', action='store_true', help='If true, all predictions are scaled by median sparse depth before evaluation.')
 parser.add_argument('--dont-interpolate', default=False, dest='dont_interpolate', action='store_true', help='Use raw sparse depth maps for refinement (dont interpolate).')
 parser.add_argument('--use-scaling-array', default=False, dest='use_scaling_array', action='store_true', help='If true, all predictions are scaled by a scaling array before evaluation.')
+parser.add_argument('--save', default=False, dest='save', action='store_true', help='Save all predictions.')
 args = parser.parse_args()
 
 # Custom object needed for inference and training
@@ -56,11 +57,9 @@ if args.dataset == 'void-rgb-sparse':
 elif(args.dataset == 'void-pred-sparse'):
 	e = evaluate_pred_sparse(model, test_set['init_preds'], test_set['sparse_depths'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=args.use_median_scaling)
 elif args.use_sparse_depth_scaling:
-	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=True, interp_depth=test_set['interp_depth'], use_scaling_array=args.use_scaling_array)
-elif args.use_median_scaling:
-	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=True)
+	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=True, interp_depth=test_set['interp_depth'], use_scaling_array=args.use_scaling_array, save_pred=args.save)
 else:
-	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=False)
+	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=args.use_median_scaling, save_pred=args.save)
 #e = evaluate(model, rgb, depth, crop, batch_size=6)
 
 end = time.time()

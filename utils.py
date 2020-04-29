@@ -332,7 +332,7 @@ def compute_errors(gt, pred, min_depth=settings.MIN_DEPTH, max_depth=settings.MA
 
     return a1, a2, a3, abs_rel, rmse, log_10, scinv, mae, i_mae, i_rmse, rmse_log
 
-def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_scaling=False, interp_depth=None, use_scaling_array=False):
+def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_scaling=False, interp_depth=None, use_scaling_array=False, save_pred=False):
     N = len(rgb)
 
     bs = batch_size
@@ -365,15 +365,26 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
             prediction = (0.5 * pred_y[j]) + (0.5 * np.fliplr(pred_y_flip[j]))
             if use_median_scaling:
                 if interp_depth is not None:
-                    if use_scaling_array: predictions.append(prediction*compute_scaling_array(sparse_depth[j], prediction))
-                    else: predictions.append(prediction*compute_scaling_factor(sparse_depth[j], prediction))
+                    if use_scaling_array: prediction = prediction*compute_scaling_array(sparse_depth[j], prediction)
+                    else: prediction = prediction*compute_scaling_factor(sparse_depth[j], prediction)
                 else:
                     scale = compute_scaling_factor(true_y[j], prediction)
-                    predictions.append(prediction*scale)
+                    predictions = prediction*scale
                     print("scaling factor", scale)
-            else:
-                predictions.append(prediction)
-            testSetDepths.append(   true_y[j]   )
+            predictions.append(prediction)
+            testSetDepths.append(true_y[j])
+            if save_pred:
+                h, w = true_y[j].shape[0], true_y[j].shape[1]
+                rgb = resize(x[j], (h,w), preserve_range=True, mode='reflect', anti_aliasing=True)
+                gt = plasma(true_y[j][:,:,0])[:,:,:3]
+                predict = plasma(prediction[0,:,:,0])[:,:,:3]
+                output_img = np.vstack([rgb, gt, predict]) * 255
+                height, width, channel = output_img.shape
+                image = Image.fromarray(output_img.astype('uint8'))
+                path = "/home/mikkel/output_pred/"+((i+1)*(j+1))+".jpg"
+                if not os.path.exists(os.path.dirname(path)):
+                    os.makedirs(os.path.dirname(path))
+                image.save(path)
         #print("tested", (i+1)*bs, "out of", N, "test images")
 
     predictions = np.stack(predictions, axis=0)
