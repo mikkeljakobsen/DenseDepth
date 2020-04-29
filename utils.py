@@ -377,12 +377,12 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 import matplotlib.pyplot as plt
                 from skimage.transform import resize
                 plasma = plt.get_cmap('plasma')
-                #h, w = true_y[j].shape[0], true_y[j].shape[1]
+                h, w = true_y[j].shape[0], true_y[j].shape[1]
                 #rgb = resize(x[j,:,:,:3], (h,w), preserve_range=True, mode='reflect', anti_aliasing=True)
                 gt = plasma(true_y[j]/10)[:,:,:3]
                 pr = plasma(prediction/10)[:,:,:3]
                 rgb = x[j,crop[0]:crop[1]+1, crop[2]:crop[3]+1,:].copy()
-                rgb = resize(rgb, (gt.shape(0), gt.shape(1)), preserve_range=True, mode='reflect', anti_aliasing=True )
+                rgb = resize(rgb, (h, w), preserve_range=True, mode='reflect', anti_aliasing=True )
                 output_img = np.vstack([rgb, gt, pr])
                 height, width, channel = output_img.shape
                 image = Image.fromarray(np.uint8(output_img*255))
