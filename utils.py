@@ -124,7 +124,7 @@ def compute_scaling_array(gt, pr, min_depth=settings.MIN_DEPTH, max_depth=settin
 def load_custom_test_data(path, channels=3, use_sparse_depth=False, dont_interpolate=False, gt_divider=1000.0):
     images, depths, interp_depths = [], [], []
     for rgb_path in sorted(glob.glob(os.path.join(path, "interp_depth/*.png"))):
-        img = np.clip(np.asarray(Image.open( rgb_path.replace('interp_depth', 'image') ), dtype=float) / 255, 0, 1)
+        img = np.asarray(Image.open( rgb_path.replace('interp_depth', 'image') )).reshape(480,640,3)
         if channels > 3:
             if dont_interpolate:
                 iz = DepthNorm(np.clip(np.asarray(Image.open( rgb_path.replace('interp_depth', 'sparse_depth') ))/256.0*settings.DEPTH_SCALE, settings.MIN_DEPTH*settings.DEPTH_SCALE, settings.MAX_DEPTH*settings.DEPTH_SCALE), maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE)*255
