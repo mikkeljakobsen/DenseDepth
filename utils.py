@@ -382,13 +382,13 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 gt, pr = true_y[j].copy(), prediction.copy()
                 gt = plasma(gt/10)[:,:,:3]
                 pr = plasma(predict(model, x[j]/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE)[0,:,:,0])[:,:,:3]
-                pr = resize(pr, (x[j].shape[0]*2, x[j].shape[1]*2), preserve_range=True, mode='reflect', anti_aliasing=True )
+                pr = resize(pr, (x[j].shape[0], x[j].shape[1]), preserve_range=True, mode='reflect', anti_aliasing=True )
                 pr = pr[crop[0]:crop[1]+1, crop[2]:crop[3]+1]
                 img = x[j,crop[0]:crop[1]+1, crop[2]:crop[3]+1,:].copy()
                 img = resize(img, (h, w), preserve_range=True, mode='reflect', anti_aliasing=True )
-                output_img = np.vstack([img, gt, pr])
+                output_img = np.vstack([img, gt*255, pr*255])
                 height, width, channel = output_img.shape
-                image = Image.fromarray(np.uint8(output_img*255))
+                image = Image.fromarray(np.uint8(output_img))
                 path = "/home/mikkel/output_pred/"+str((i+1)*(j+1))+".jpg"
                 if not os.path.exists(os.path.dirname(path)):
                     os.makedirs(os.path.dirname(path))
