@@ -2,7 +2,7 @@ import os
 import glob
 import time
 import argparse
-from utils import load_void_imu_test_data, load_void_test_data, load_test_data, load_void_rgb_sparse_test_data, load_void_pred_sparse_test_data
+from utils import load_void_imu_test_data, load_void_test_data, load_test_data, load_void_rgb_sparse_test_data, load_void_pred_sparse_test_data, load_custom_test_data
 # Kerasa / TensorFlow
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '5'
 from keras.models import load_model
@@ -16,7 +16,9 @@ import numpy as np
 parser = argparse.ArgumentParser(description='High Quality Monocular Depth Estimation via Transfer Learning')
 parser.add_argument('--model', default='nyu.h5', type=str, help='Trained Keras model file.')
 parser.add_argument('--dataset', default='void', type=str, help='Test dataset.')
+parser.add_argument('--path', default='/home/mikkel/data/void_release/void_150/data/desktop2', type=str, help='Path to test dataset.')
 parser.add_argument('--channels', default=3, type=int, help='Number of channels for VOID dataset.')
+parser.add_argument('--gt-divider', default=1000.0, dest='gt_divider', type=float, help='Division scale for raw ground-truth files')
 parser.add_argument('--use-median-scaling', default=False, dest='use_median_scaling', action='store_true', help='If true, all predictions are scaled by median gt before evaluation.')
 parser.add_argument('--use-sparse-depth-scaling', default=False, dest='use_sparse_depth_scaling', action='store_true', help='If true, all predictions are scaled by median sparse depth before evaluation.')
 parser.add_argument('--dont-interpolate', default=False, dest='dont_interpolate', action='store_true', help='Use raw sparse depth maps for refinement (dont interpolate).')
@@ -33,7 +35,9 @@ model = load_model(args.model, custom_objects=custom_objects, compile=False)
 # Load test data
 print('Loading test data...', end='')
 test_set = {}
-if(args.dataset == 'nyu'):
+if(args.dataset == 'custom'):
+	test_set = load_custom_test_data(path=args.path, gt_divider=args.gt_divider)
+elif(args.dataset == 'nyu'):
 	test_set = load_test_data()
 elif(args.dataset == 'void-imu'):
 	test_set = load_void_imu_test_data()
