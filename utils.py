@@ -377,11 +377,11 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 import matplotlib.pyplot as plt
                 from skimage.transform import resize
                 plasma = plt.get_cmap('plasma')
-                h, w = true_y[j].shape[0], true_y[j].shape[1]
-                rgb = resize(x[j,:,:,:3].copy(), (h,w), preserve_range=True, mode='reflect', anti_aliasing=True)
-                gt = plasma(true_y[j])[:,:,:3]
-                pr = plasma(prediction)[:,:,:3]
-                output_img = np.vstack([rgb, gt, pr]) * 255
+                #h, w = true_y[j].shape[0], true_y[j].shape[1]
+                #rgb = resize(x[j,:,:,:3], (h,w), preserve_range=True, mode='reflect', anti_aliasing=True)
+                gt = plasma(true_y[j])
+                pr = plasma(prediction)
+                output_img = np.vstack([x[j,:,:,:3], gt, pr]) * 255
                 height, width, channel = output_img.shape
                 image = Image.fromarray(output_img.astype('uint8'))
                 path = "/home/mikkel/output_pred/"+str((i+1)*(j+1))+".jpg"
