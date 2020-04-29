@@ -123,25 +123,25 @@ def compute_scaling_array(gt, pr, min_depth=settings.MIN_DEPTH, max_depth=settin
 
 def load_custom_test_data(path, channels=3, use_sparse_depth=False, dont_interpolate=False, gt_divider=1000.0):
     images, depths, interp_depths = [], [], []
-    for rgb_path in sorted(glob.glob(os.path.join(path, "image/*.png"))):
-        img = np.asarray(Image.open( rgb_path )).reshape(480,640,3)
+    for rgb_path in sorted(glob.glob(os.path.join(path, "interp_depth/*.png"))):
+        img = np.asarray(Image.open( rgb_path.replace('interp_depth', 'image') )).reshape(480,640,3)
         if channels > 3:
             if dont_interpolate:
-                iz = DepthNorm(np.clip(np.asarray(Image.open( rgb_path.replace('image', 'sparse_depth') ))/256.0*settings.DEPTH_SCALE, settings.MIN_DEPTH*settings.DEPTH_SCALE, settings.MAX_DEPTH*settings.DEPTH_SCALE), maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE)*255
+                iz = DepthNorm(np.clip(np.asarray(Image.open( rgb_path.replace('interp_depth', 'sparse_depth') ))/256.0*settings.DEPTH_SCALE, settings.MIN_DEPTH*settings.DEPTH_SCALE, settings.MAX_DEPTH*settings.DEPTH_SCALE), maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE)*255
             else:
-                iz = DepthNorm(np.clip(np.asarray(Image.open( rgb_path.replace('image', 'interp_depth') ))/256.0*settings.DEPTH_SCALE, settings.MIN_DEPTH*settings.DEPTH_SCALE, settings.MAX_DEPTH*settings.DEPTH_SCALE), maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE)*255
+                iz = DepthNorm(np.clip(np.asarray(Image.open( rgb_path ))/256.0*settings.DEPTH_SCALE, settings.MIN_DEPTH*settings.DEPTH_SCALE, settings.MAX_DEPTH*settings.DEPTH_SCALE), maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE)*255
             if channels > 4:
-                vm = np.array(Image.open(rgb_path.replace('image', 'validity_map')), dtype=np.float32)*255
+                vm = np.array(Image.open(rgb_path.replace('interp_depth', 'validity_map')), dtype=np.float32)*255
                 img = np.stack([img[:,:,0], img[:,:,1], img[:,:,2], iz, vm], axis=-1)
             else:
                 img = np.stack([img[:,:,0], img[:,:,1], img[:,:,2], iz], axis=-1)
-        depth = np.asarray(Image.open( rgb_path.replace('image', 'ground_truth') ))/gt_divider # convert from mm to m
+        depth = np.asarray(Image.open( rgb_path.replace('interp_depth', 'ground_truth') ))/gt_divider # convert from mm to m
         images.append(img)
         depths.append(depth)
 
         if use_sparse_depth:
-            if dont_interpolate: interp_depth = np.asarray(Image.open( rgb_path.replace('image', 'sparse_depth') ))/256.0
-            else: interp_depth = np.asarray(Image.open( rgb_path.replace('image', 'interp_depth') ))/256.0
+            if dont_interpolate: interp_depth = np.asarray(Image.open( rgb_path.replace('interp_depth', 'sparse_depth') ))/256.0
+            else: interp_depth = np.asarray(Image.open( rgb_path ))/256.0
             interp_depths.append(interp_depth)
 
     inds = np.arange(len(images)).tolist()
