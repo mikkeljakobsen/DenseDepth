@@ -68,8 +68,6 @@ def get_void_train_test_data(batch_size, void_data_path='/home/mikkel/data/void_
         test_generator = VOID_InitPredSparseSequence(void_data_path, void_test, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
     return train_generator, test_generator
 
-def get_void_val_data(batch_size, void_data_path='/home/mikkel/data/void_release', mode='normal', dont_interpolate=False, use_median_scaling=False):
-
 class VOID_BasicAugmentRGBSequence(Sequence):
     def __init__(self, data_root, data_paths, batch_size, shape_rgb, shape_depth, is_flip=False, is_addnoise=False, is_erase=False):
         self.data_root = data_root
