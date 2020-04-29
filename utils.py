@@ -381,10 +381,11 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 #rgb = resize(x[j,:,:,:3], (h,w), preserve_range=True, mode='reflect', anti_aliasing=True)
                 gt = plasma(true_y[j]/10)[:,:,:3]
                 pr = plasma(prediction/10)[:,:,:3]
-                print("rgb", x[j,:,:,:3].shape, "gt", gt.shape, "pred", pr.shape)
-                output_img = np.vstack([x[j,crop[0]:crop[1]+1, crop[2]:crop[3]+1,:3], gt*255, pr*255])
+                rgb = x[j,crop[0]:crop[1]+1, crop[2]:crop[3]+1,:3].copy()
+                rgb = resize(rgb, (gt.shape(0), gt.shape(1)), preserve_range=True, mode='reflect', anti_aliasing=True )
+                output_img = np.vstack([rgb, gt, pr])
                 height, width, channel = output_img.shape
-                image = Image.fromarray(output_img.astype('uint8'))
+                image = Image.fromarray(np.uint8(output_img*255))
                 path = "/home/mikkel/output_pred/"+str((i+1)*(j+1))+".jpg"
                 if not os.path.exists(os.path.dirname(path)):
                     os.makedirs(os.path.dirname(path))
