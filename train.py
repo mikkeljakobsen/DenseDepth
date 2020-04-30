@@ -29,6 +29,7 @@ parser.add_argument('--weights', type=str, default='', help='Start training with
 parser.add_argument('--full', dest='full', action='store_true', help='Full training with metrics, checkpoints, and image samples.')
 parser.add_argument('--resnet50', dest='resnet50', action='store_true', help='Train a Resnet 50 model.')
 parser.add_argument('--dont-interpolate', default=False, dest='dont_interpolate', action='store_true', help='Use raw sparse depth maps.')
+parser.add_argument('--channels', type=int, default=3, help='Channels')
 
 args = parser.parse_args()
 
@@ -39,10 +40,10 @@ if args.gpus == 1:
 else:
     print('Will use ' + str(args.gpus) + ' GPUs.')
 
-channels = 3
+channels = args.channels
 # Create the model
 if args.data == 'void' and args.voidmode == 'two-branch':
-    model = create_two_branch_model( existing=args.checkpoint)
+    model = create_two_branch_model( existing=args.checkpoint, channels=channels)
     channels = 4
 elif args.data == 'void' and args.voidmode == '5channel':
     model = create_model(existing=args.checkpoint, channels=5)

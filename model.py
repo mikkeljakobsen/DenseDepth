@@ -80,7 +80,7 @@ def create_model(existing='', is_twohundred=False, is_halffeatures=True, channel
     return model
 
 
-def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=True):
+def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=True, channels=4):
         
     if len(existing) == 0:
         print('Loading base model (DenseNet)..')
@@ -102,20 +102,20 @@ def create_two_branch_model(existing='', is_twohundred=False, is_halffeatures=Tr
                     return x[:, :, :, :, start: end]
             return Lambda(func)
 
-        input_rgbd = Input(shape=(None, None, 4), name='input_rgbd')
+        input_rgbd = Input(shape=(None, None, channels), name='input_rgbd')
         input_rgb = crop(3, 0, 3)(input_rgbd)
-        input_sparse = crop(3, 3, 4)(input_rgbd)
+        input_sparse = crop(3, 3, channels)(input_rgbd)
         #base_model_sz_input = Conv2D(3, (3,3), padding='same')(input_sparse)
 
         # Encoder Layers
         if is_twohundred:
             base_model = applications.DenseNet201(input_shape=(None, None, 3), include_top=False, weights='imagenet', input_tensor=input_rgb)
             #base_model_sz = applications.DenseNet201(input_shape=(None, None, 3), include_top=False, weights='imagenet', input_tensor=concatenate([input_sparse, input_sparse, input_sparse], axis=-1))
-            base_model_sz = applications.DenseNet201(input_shape=(None, None, 1), include_top=False, weights=None, input_tensor=input_sparse)
+            base_model_sz = applications.DenseNet201(input_shape=(None, None, channels-3), include_top=False, weights=None, input_tensor=input_sparse)
         else:
             base_model = applications.DenseNet169(input_shape=(None, None, 3), include_top=False, weights='imagenet', input_tensor=input_rgb)
             #base_model_sz = applications.DenseNet169(input_shape=(None, None, 3), include_top=False, weights='imagenet', input_tensor=concatenate([input_sparse, input_sparse, input_sparse], axis=-1))
-            base_model_sz = applications.DenseNet169(input_shape=(None, None, 1), include_top=False, weights=None, input_tensor=input_sparse)
+            base_model_sz = applications.DenseNet169(input_shape=(None, None, channels-3), include_top=False, weights=None, input_tensor=input_sparse)
         for layer in base_model.layers:
             print(layer.name)
             if layer.get_weights() != []:  # Skip input, pooling and no weights layers
