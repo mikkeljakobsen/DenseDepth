@@ -384,7 +384,7 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 pr = plasma(predict(model, x[j]/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE)[0,:,:,0])[:,:,:3]
                 pr = resize(pr, (x[j].shape[0], x[j].shape[1]), order=1, preserve_range=True, mode='reflect', anti_aliasing=True )
                 pr = pr[crop[0]:crop[1]+1, crop[2]:crop[3]+1]
-                img = x[j,crop[0]:crop[1]+1, crop[2]:crop[3]+1,:].copy()
+                img = x[j,crop[0]:crop[1]+1, crop[2]:crop[3]+1,:3].copy()
                 img = resize(img, (h, w), preserve_range=True, mode='reflect', anti_aliasing=True )
                 output_img = np.vstack([img, gt*255, pr*255])
                 height, width, channel = output_img.shape
