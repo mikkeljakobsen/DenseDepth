@@ -59,7 +59,7 @@ if args.weights != '':
 # Data loaders
 if args.data == 'nyu': train_generator, test_generator = get_nyu_train_test_data( args.bs )
 if args.data == 'unreal': train_generator, test_generator = get_unreal_train_test_data( args.bs )
-if args.data == 'void': train_generator, test_generator = get_void_train_test_data( args.bs, mode=args.voidmode, dont_interpolate=args.dont_interpolate, channels=args.channels )
+if args.data == 'void': train_generator, test_generator = get_void_train_test_data( args.bs, mode=args.voidmode, dont_interpolate=args.dont_interpolate, channels=channels )
 # Training session details
 runID = str(int(time.time())) + '-n' + str(len(train_generator)) + '-e' + str(args.epochs) + '-bs' + str(args.bs) + '-lr' + str(args.lr) + '-' + args.name
 outputPath = '/home/mikkel/models/'
