@@ -369,7 +369,7 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                     else: prediction = prediction*compute_scaling_factor(sparse_depth[j], prediction)
                 else:
                     scale = compute_scaling_factor(true_y[j], prediction)
-                    predictions = prediction*scale
+                    prediction = prediction*scale
                     print("scaling factor", scale)
             predictions.append(prediction)
             testSetDepths.append(true_y[j])
