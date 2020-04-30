@@ -44,7 +44,6 @@ channels = args.channels
 # Create the model
 if args.data == 'void' and args.voidmode == 'two-branch':
     model = create_two_branch_model( existing=args.checkpoint, channels=channels)
-    channels = 4
 elif args.data == 'void' and args.voidmode == '5channel':
     model = create_model(existing=args.checkpoint, channels=5)
     channels = 5
