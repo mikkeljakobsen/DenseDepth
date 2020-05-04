@@ -170,8 +170,8 @@ def load_void_test_data(void_data_path='/home/mikkel/data/void_release', channel
     void_test_rgb, void_test_depth = [], []
     for i in range(len(void_test_rgb_temp)):
         if os.path.isfile(os.path.join(void_data_path, void_test_rgb_temp[i]).replace('image', 'sparse_depth')):
-            void_test_rgb.append(void_train_rgb_temp)
-            void_test_depth.append(void_train_depth_temp)
+            void_test_rgb.append(void_test_rgb_temp)
+            void_test_depth.append(void_test_depth_temp)
     images = []
 
     for rgb_path in void_test_rgb:
