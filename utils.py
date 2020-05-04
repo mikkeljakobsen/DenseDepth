@@ -167,6 +167,9 @@ def load_test_data(test_data_zip_file='nyu_test.zip'):
 def load_void_test_data(void_data_path='/home/mikkel/data/void_release', channels=3, use_sparse_depth=False, dont_interpolate=False):
     void_test_rgb = list(line.strip() for line in open(void_data_path+'/void_150/test_image.txt'))
     void_test_depth = list(line.strip() for line in open(void_data_path+'/void_150/test_ground_truth.txt'))
+    #for i in range(len(void_test_rgb)):
+    #if os.path.isfile(os.path.join(void_data_path, void_test_rgb[i]).replace('image', 'sparse_depth')):
+    #    void_train.append([void_train_rgb[i], void_train_depth[i]])
 
     images = []
 

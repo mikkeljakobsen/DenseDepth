@@ -30,6 +30,7 @@ parser.add_argument('--full', dest='full', action='store_true', help='Full train
 parser.add_argument('--resnet50', dest='resnet50', action='store_true', help='Train a Resnet 50 model.')
 parser.add_argument('--dont-interpolate', default=False, dest='dont_interpolate', action='store_true', help='Use raw sparse depth maps.')
 parser.add_argument('--channels', type=int, default=3, help='Channels')
+parser.add_argument('--use-void-1500', default=False, dest='use_void_1500', action='store_true', help='Use VOID 1500 raw sparse depth maps.')
 
 args = parser.parse_args()
 
@@ -59,7 +60,7 @@ if args.weights != '':
 # Data loaders
 if args.data == 'nyu': train_generator, test_generator = get_nyu_train_test_data( args.bs )
 if args.data == 'unreal': train_generator, test_generator = get_unreal_train_test_data( args.bs )
-if args.data == 'void': train_generator, test_generator = get_void_train_test_data( args.bs, mode=args.voidmode, dont_interpolate=args.dont_interpolate, channels=channels )
+if args.data == 'void': train_generator, test_generator = get_void_train_test_data( args.bs, mode=args.voidmode, dont_interpolate=args.dont_interpolate, channels=channels, use_void_1500=args.use_void_1500 )
 # Training session details
 runID = str(int(time.time())) + '-n' + str(len(train_generator)) + '-e' + str(args.epochs) + '-bs' + str(args.bs) + '-lr' + str(args.lr) + '-' + args.name
 outputPath = '/home/mikkel/models/'
@@ -100,7 +101,7 @@ print('Ready for training!\n')
 callbacks = []
 if args.data == 'nyu': callbacks = get_nyu_callbacks(model, basemodel, train_generator, test_generator, load_test_data() if args.full else None , runPath)
 if args.data == 'unreal': callbacks = get_nyu_callbacks(model, basemodel, train_generator, test_generator, load_test_data() if args.full else None , runPath)
-if args.data == 'void': callbacks = get_void_callbacks(model, basemodel, train_generator, test_generator, load_void_test_data(channels=channels, dont_interpolate=args.dont_interpolate) if args.full else None , runPath)
+if args.data == 'void': callbacks = get_void_callbacks(model, basemodel, train_generator, test_generator, load_void_test_data(channels=channels, dont_interpolate=args.dont_interpolate, use_void_1500=args.use_void_1500) if args.full else None , runPath)
 if args.data == 'void-imu': callbacks = get_void_callbacks(model, basemodel, train_generator, test_generator, None , runPath)
 
 # Start training
