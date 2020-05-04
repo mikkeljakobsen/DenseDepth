@@ -41,7 +41,7 @@ def get_nyu_train_test_data(batch_size):
 
     return train_generator, test_generator
 
-def get_void_data(batch_size, void_data_path):
+def get_void_data(batch_size, void_data_path, use_void_1500=False):
     void_train_rgb = list(line.strip() for line in open(void_data_path+'/void_150/train_image.txt'))
     void_train_depth = list(line.strip() for line in open(void_data_path+'/void_150/train_ground_truth.txt'))
     #void_train = [[void_train_rgb[i], void_train_depth[i]] for i in range(0, len(void_train_rgb))]
