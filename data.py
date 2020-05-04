@@ -55,6 +55,7 @@ def get_void_data(batch_size, void_data_path):
 
 def get_void_train_test_data(batch_size, void_data_path='/home/mikkel/data/void_release', mode='normal', channels=4, dont_interpolate=False, use_void_1500=False):
     void_train, void_test, shape_rgb, shape_depth = get_void_data(batch_size, void_data_path, use_void_1500=False)
+    print('train set size:', len(void_train), ', val set size:', len(void_test))
     if mode == 'normal':
         train_generator = VOID_BasicAugmentRGBSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
         test_generator = VOID_BasicRGBSequence(void_data_path, void_test, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
@@ -62,7 +63,7 @@ def get_void_train_test_data(batch_size, void_data_path='/home/mikkel/data/void_
         train_generator = VOID_BasicAugmentRGBDSequence(void_data_path, void_train, batch_size=batch_size, shape_depth=shape_depth, channels=channels, dont_interpolate=dont_interpolate, use_void_1500=use_void_1500)
         test_generator = VOID_BasicRGBDSequence(void_data_path, void_test, batch_size=batch_size, shape_depth=shape_depth, channels=channels, dont_interpolate=dont_interpolate, use_void_1500=use_void_1500)
     elif mode == '4channel':
-        train_generator = VOID_BasicAugmentRGBDSequence(void_data_path, void_train, batch_size=batch_size, shape_depth=shape_depth, channels=4, dont_interpolate=dont_interpolate), use_void_1500=use_void_1500
+        train_generator = VOID_BasicAugmentRGBDSequence(void_data_path, void_train, batch_size=batch_size, shape_depth=shape_depth, channels=4, dont_interpolate=dont_interpolate, use_void_1500=use_void_1500)
         test_generator = VOID_BasicRGBDSequence(void_data_path, void_test, batch_size=batch_size, shape_depth=shape_depth, channels=4, dont_interpolate=dont_interpolate, use_void_1500=use_void_1500)
     elif mode == '5channel':
         train_generator = VOID_BasicAugmentRGBDSequence(void_data_path, void_train, batch_size=batch_size, shape_depth=shape_depth, channels=5, dont_interpolate=dont_interpolate, use_void_1500=use_void_1500)
