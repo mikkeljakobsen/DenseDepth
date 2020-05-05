@@ -277,12 +277,12 @@ def create_two_branch_model_very_late_fusion(existing='', is_twohundred=False, i
             return up_i
 
         # Decoder Layers
-        decoder_sz = Conv2D(filters=decode_filters_sz, kernel_size=1, padding='same', input_shape=base_model_output_shape, name='conv2')(base_model.output)
-        decoder_sz = upproject_sz(decoder_sz, int(decode_filters_sz/2), 'up1', concat_with='pool3_pool')
-        decoder_sz = upproject_sz(decoder_sz, int(decode_filters_sz/4), 'up2', concat_with='pool2_pool')
-        decoder_sz = upproject_sz(decoder_sz, int(decode_filters_sz/8), 'up3', concat_with='pool1')
-        decoder_sz = upproject_sz(decoder_sz, int(decode_filters_sz/16), 'up4', concat_with='conv1/relu')
-        if False: decoder_sz = upproject_sz(decoder_sz, int(decode_filters_sz/32), 'up5', concat_with='input_1')
+        decoder_sz = Conv2D(filters=decode_filters_sz, kernel_size=1, padding='same', input_shape=base_model_output_shape, name='conv2_sz')(base_model.output)
+        decoder_sz = upproject_sz(decoder_sz, int(decode_filters_sz/2), 'up1_sz', concat_with='pool3_pool')
+        decoder_sz = upproject_sz(decoder_sz, int(decode_filters_sz/4), 'up2_sz', concat_with='pool2_pool')
+        decoder_sz = upproject_sz(decoder_sz, int(decode_filters_sz/8), 'up3_sz', concat_with='pool1')
+        decoder_sz = upproject_sz(decoder_sz, int(decode_filters_sz/16), 'up4_sz', concat_with='conv1/relu')
+        if False: decoder_sz = upproject_sz(decoder_sz, int(decode_filters_sz/32), 'up5_sz', concat_with='input_1')
 
         # Extract depths (final layer)
         conv3 = Conv2D(filters=1, kernel_size=3, strides=1, padding='same', name='conv3')(concatenate([decoder, decoder_sz], axis=-1))
