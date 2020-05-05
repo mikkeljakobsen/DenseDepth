@@ -217,8 +217,10 @@ def create_two_branch_model_very_late_fusion(existing='', is_twohundred=False, i
         else:
             base_model = applications.DenseNet169(input_shape=(None, None, 3), include_top=False, weights='imagenet', input_tensor=input_rgb)
             #base_model_sz = applications.DenseNet169(input_shape=(None, None, 3), include_top=False, weights='imagenet', input_tensor=concatenate([input_sparse, input_sparse, input_sparse], axis=-1))
-            base_model_sz = applications.DenseNet121(input_shape=(None, None, channels-3), include_top=False, weights=None, input_tensor=input_sparse)
-            pretrained = applications.DenseNet121(input_shape=(None, None, 3), include_top=False, weights='imagenet')
+            base_model_sz = applications.DenseNet169(input_shape=(None, None, channels-3), include_top=False, weights=None, input_tensor=input_sparse)
+            pretrained = applications.DenseNet169(input_shape=(None, None, 3), include_top=False, weights='imagenet')
+            #base_model_sz = applications.DenseNet121(input_shape=(None, None, channels-3), include_top=False, weights=None, input_tensor=input_sparse)
+            #pretrained = applications.DenseNet121(input_shape=(None, None, 3), include_top=False, weights='imagenet')
         for layer in pretrained.layers:
             print(layer.name)
             if layer.get_weights() != []:  # Skip input, pooling and no weights layers
