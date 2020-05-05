@@ -267,9 +267,6 @@ def create_two_branch_model_very_late_fusion(existing='', is_twohundred=False, i
         decoder = upproject(decoder, int(decode_filters/16), 'up4', concat_with='conv1/relu')
         if False: decoder = upproject(decoder, int(decode_filters/32), 'up5', concat_with='input_1')
 
-        # Extract depths (final layer)
-        conv3 = Conv2D(filters=1, kernel_size=3, strides=1, padding='same', name='conv3')(decoder)
-
         def upproject_sz(tensor, filters, name, concat_with):
             up_i = BilinearUpSampling2D((2, 2), name=name+'_upsampling2d')(tensor)
             up_i = Concatenate(name=name+'_concat')([up_i, base_model_sz.get_layer(concat_with+str("_sz")).output]) # Skip connection
