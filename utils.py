@@ -184,7 +184,9 @@ def load_void_test_data(void_data_path='/home/mikkel/data/void_release', channel
             else:
                 iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(void_data_path, rgb_path).replace('image', 'interp_depth') ))/256.0*settings.DEPTH_SCALE, settings.MIN_DEPTH*settings.DEPTH_SCALE, settings.MAX_DEPTH*settings.DEPTH_SCALE), maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE)*255
             if channels > 4:
-                vm = np.array(Image.open(os.path.join(void_data_path, rgb_path).replace('image', 'validity_map')), dtype=np.float32)*255
+                vm = np.array(Image.open(os.path.join(void_data_path, rgb_path).replace('image', 'validity_map')), dtype=np.float32)
+                assert(np.all(np.unique(vm) == [0, 256]))
+                vm[vm > 0] = 255
                 img = np.stack([img[:,:,0], img[:,:,1], img[:,:,2], iz, vm], axis=-1)
             else:
                 img = np.stack([img[:,:,0], img[:,:,1], img[:,:,2], iz], axis=-1)
