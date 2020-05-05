@@ -8,6 +8,8 @@ def depth_loss_function(y_true, y_pred, theta=0.1, maxDepthVal=settings.MAX_DEPT
     # Point-wise depth
     l_depth = K.mean(K.abs(y_pred - y_true), axis=-1)
 
+    if settings.USE_L1_LOSS_ONLY:
+        return l_depth
     # Edges
     dy_true, dx_true = tf.image.image_gradients(y_true)
     dy_pred, dx_pred = tf.image.image_gradients(y_pred)
