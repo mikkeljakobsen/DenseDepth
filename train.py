@@ -31,6 +31,7 @@ parser.add_argument('--resnet50', dest='resnet50', action='store_true', help='Tr
 parser.add_argument('--dont-interpolate', default=False, dest='dont_interpolate', action='store_true', help='Use raw sparse depth maps.')
 parser.add_argument('--channels', type=int, default=3, help='Channels')
 parser.add_argument('--use-void-1500', default=False, dest='use_void_1500', action='store_true', help='Use VOID 1500 raw sparse depth maps.')
+parser.add_argument('--use-very-late-fusion', default=False, dest='use_very_late_fusion', action='store_true', help='Concat branches at the very end (just before last conv layer).')
 
 args = parser.parse_args()
 
@@ -44,7 +45,8 @@ else:
 channels = args.channels
 # Create the model
 if args.data == 'void' and args.voidmode == 'two-branch':
-    model = create_two_branch_model( existing=args.checkpoint, channels=channels)
+    if args.use_very_late_fusion: model = create_two_branch_model_very_late_fusion( existing=args.checkpoint, channels=channels)
+    else: model = create_two_branch_model( existing=args.checkpoint, channels=channels)
 elif args.data == 'void' and args.voidmode == '5channel':
     model = create_model(existing=args.checkpoint, channels=5)
     channels = 5
