@@ -42,8 +42,12 @@ def get_nyu_train_test_data(batch_size):
     return train_generator, test_generator
 
 def get_void_data(batch_size, void_data_path, use_void_1500=False):
-    void_train_rgb = list(line.strip() for line in open(void_data_path+'/void_150/train_image.txt'))
-    void_train_depth = list(line.strip() for line in open(void_data_path+'/void_150/train_ground_truth.txt'))
+    if use_void_1500:
+        void_train_rgb = list(line.strip() for line in open(void_data_path+'/void_1500/train_image.txt'))
+        void_train_depth = list(line.strip() for line in open(void_data_path+'/void_1500/train_ground_truth.txt'))
+    else:
+        void_train_rgb = list(line.strip() for line in open(void_data_path+'/void_150/train_image.txt'))
+        void_train_depth = list(line.strip() for line in open(void_data_path+'/void_150/train_ground_truth.txt'))
     #void_train = [[void_train_rgb[i], void_train_depth[i]] for i in range(0, len(void_train_rgb))]
     void_train = []
     for i in range(len(void_train_rgb)):
@@ -60,17 +64,17 @@ def get_void_train_test_data(batch_size, void_data_path='/home/mikkel/data/void_
         train_generator = VOID_BasicAugmentRGBSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
         test_generator = VOID_BasicRGBSequence(void_data_path, void_test, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
     elif mode == 'two-branch':
-        train_generator = VOID_BasicAugmentRGBDSequence(void_data_path, void_train, batch_size=batch_size, shape_depth=shape_depth, channels=channels, dont_interpolate=dont_interpolate, use_void_1500=use_void_1500)
-        test_generator = VOID_BasicRGBDSequence(void_data_path, void_test, batch_size=batch_size, shape_depth=shape_depth, channels=channels, dont_interpolate=dont_interpolate, use_void_1500=use_void_1500)
+        train_generator = VOID_BasicAugmentRGBDSequence(void_data_path, void_train, batch_size=batch_size, shape_depth=shape_depth, channels=channels, dont_interpolate=dont_interpolate)
+        test_generator = VOID_BasicRGBDSequence(void_data_path, void_test, batch_size=batch_size, shape_depth=shape_depth, channels=channels, dont_interpolate=dont_interpolate)
     elif mode == '4channel':
-        train_generator = VOID_BasicAugmentRGBDSequence(void_data_path, void_train, batch_size=batch_size, shape_depth=shape_depth, channels=4, dont_interpolate=dont_interpolate, use_void_1500=use_void_1500)
-        test_generator = VOID_BasicRGBDSequence(void_data_path, void_test, batch_size=batch_size, shape_depth=shape_depth, channels=4, dont_interpolate=dont_interpolate, use_void_1500=use_void_1500)
+        train_generator = VOID_BasicAugmentRGBDSequence(void_data_path, void_train, batch_size=batch_size, shape_depth=shape_depth, channels=4, dont_interpolate=dont_interpolate)
+        test_generator = VOID_BasicRGBDSequence(void_data_path, void_test, batch_size=batch_size, shape_depth=shape_depth, channels=4, dont_interpolate=dont_interpolate)
     elif mode == '5channel':
-        train_generator = VOID_BasicAugmentRGBDSequence(void_data_path, void_train, batch_size=batch_size, shape_depth=shape_depth, channels=5, dont_interpolate=dont_interpolate, use_void_1500=use_void_1500)
-        test_generator = VOID_BasicRGBDSequence(void_data_path, void_test, batch_size=batch_size, shape_depth=shape_depth, channels=5, dont_interpolate=dont_interpolate, use_void_1500=use_void_1500)
+        train_generator = VOID_BasicAugmentRGBDSequence(void_data_path, void_train, batch_size=batch_size, shape_depth=shape_depth, channels=5, dont_interpolate=dont_interpolate)
+        test_generator = VOID_BasicRGBDSequence(void_data_path, void_test, batch_size=batch_size, shape_depth=shape_depth, channels=5, dont_interpolate=dont_interpolate)
     elif mode == 'pred+sparse':
-        train_generator = VOID_InitPredSparseSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth, use_void_1500=use_void_1500)
-        test_generator = VOID_InitPredSparseSequence(void_data_path, void_test, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth, use_void_1500=use_void_1500)
+        train_generator = VOID_InitPredSparseSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
+        test_generator = VOID_InitPredSparseSequence(void_data_path, void_test, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
     return train_generator, test_generator
 
 class VOID_BasicAugmentRGBSequence(Sequence):
@@ -154,7 +158,7 @@ class VOID_BasicRGBSequence(Sequence):
         return batch_x, batch_y
 
 class VOID_BasicAugmentRGBDSequence(Sequence):
-    def __init__(self, data_root, data_paths, batch_size, shape_depth, channels=5, is_flip=False, is_addnoise=False, is_erase=False, dont_interpolate=False, use_void_1500=False):
+    def __init__(self, data_root, data_paths, batch_size, shape_depth, channels=5, is_flip=False, is_addnoise=False, is_erase=False, dont_interpolate=False):
         self.data_root = data_root
         self.dataset = data_paths
         self.policy = BasicPolicy( color_change_ratio=0.50, mirror_ratio=0.50, flip_ratio=0.0 if not is_flip else 0.2, 
@@ -171,9 +175,6 @@ class VOID_BasicAugmentRGBDSequence(Sequence):
         self.dataset = shuffle(self.dataset, random_state=0)
 
         self.N = len(self.dataset)
-        self.sd_suffix = ''
-        if use_void_1500:
-            self.sd_suffix = '_1500'
 
     def __len__(self):
         return int(np.ceil(self.N / float(self.batch_size)))
@@ -190,12 +191,12 @@ class VOID_BasicAugmentRGBDSequence(Sequence):
             x = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] )).reshape(480,640,3)/255,0,1)
             #iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*100,10.0,1000.0), maxDepth=self.maxDepth)
             if self.dont_interpolate:
-                iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'sparse_depth'+self.sd_suffix) ))/256.0*settings.DEPTH_SCALE, self.minDepth, self.maxDepth), maxDepth=self.maxDepth)
+                iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'sparse_depth') ))/256.0*settings.DEPTH_SCALE, self.minDepth, self.maxDepth), maxDepth=self.maxDepth)
             else:
-                iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth'+self.sd_suffix) ))/256.0*settings.DEPTH_SCALE, self.minDepth, self.maxDepth), maxDepth=self.maxDepth)
+                iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*settings.DEPTH_SCALE, self.minDepth, self.maxDepth), maxDepth=self.maxDepth)
             vm = None
             if self.channels == 5:
-                vm = np.array(Image.open(os.path.join(self.data_root, sample[0]).replace('image', 'validity_map'+self.sd_suffix)), dtype=np.float32)
+                vm = np.array(Image.open(os.path.join(self.data_root, sample[0]).replace('image', 'validity_map')), dtype=np.float32)
                 assert(np.all(np.unique(vm) == [0, 256]))
                 vm[vm > 0] = 1
 
@@ -219,7 +220,7 @@ class VOID_BasicAugmentRGBDSequence(Sequence):
         return batch_x, batch_y
 
 class VOID_BasicRGBDSequence(Sequence):
-    def __init__(self, data_root, data_paths, batch_size, shape_depth, channels=5, dont_interpolate=False, use_void_1500=False):
+    def __init__(self, data_root, data_paths, batch_size, shape_depth, channels=5, dont_interpolate=False):
         self.data_root = data_root
         self.dataset = data_paths
         self.batch_size = batch_size
@@ -230,9 +231,6 @@ class VOID_BasicRGBDSequence(Sequence):
         self.minDepth = settings.MIN_DEPTH*settings.DEPTH_SCALE #cm
         self.maxDepth = settings.MAX_DEPTH*settings.DEPTH_SCALE #cm
         self.dont_interpolate = dont_interpolate
-        self.sd_suffix = ''
-        if use_void_1500:
-            self.sd_suffix = '_1500'
 
     def __len__(self):
         return int(np.ceil(self.N / float(self.batch_size)))
@@ -248,15 +246,15 @@ class VOID_BasicRGBDSequence(Sequence):
 
             #iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*100,10.0,1000.0), maxDepth=self.maxDepth)
             if self.dont_interpolate:
-                iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'sparse_depth'+self.sd_suffix) ))/256.0*settings.DEPTH_SCALE, self.minDepth, self.maxDepth), maxDepth=self.maxDepth)
+                iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'sparse_depth') ))/256.0*settings.DEPTH_SCALE, self.minDepth, self.maxDepth), maxDepth=self.maxDepth)
             else:
-                iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth'+self.sd_suffix) ))/256.0*settings.DEPTH_SCALE, self.minDepth, self.maxDepth), maxDepth=self.maxDepth)
+                iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*settings.DEPTH_SCALE, self.minDepth, self.maxDepth), maxDepth=self.maxDepth)
             vm = None
             y = np.asarray(np.asarray(Image.open( self.data_root+"/"+sample[1] ))/256.0)
             y = np.clip(y.reshape(480,640,1)*settings.DEPTH_SCALE, self.minDepth, self.maxDepth) # fill missing pixels and convert to cm
             y = DepthNorm(y, maxDepth=self.maxDepth)
             if self.channels == 5:
-                vm = np.array(Image.open(os.path.join(self.data_root, sample[0]).replace('image', 'validity_map'+self.sd_suffix)), dtype=np.float32)
+                vm = np.array(Image.open(os.path.join(self.data_root, sample[0]).replace('image', 'validity_map')), dtype=np.float32)
                 assert(np.all(np.unique(vm) == [0, 256]))
                 vm[vm > 0] = 1
                 batch_x[i] = np.stack([x[:,:,0], x[:,:,1], x[:,:,2], iz, vm], axis=-1)
@@ -283,9 +281,6 @@ class VOID_ImuAidedRGBSequence(Sequence):
         self.maxDepth = settings.MAX_DEPTH*settings.DEPTH_SCALE #cm
         from sklearn.utils import shuffle
         self.dataset = shuffle(self.dataset, random_state=0)
-        self.sd_suffix = ''
-        if use_void_1500:
-            self.sd_suffix = '_1500'
 
     def __len__(self):
         return int(np.ceil(self.N / float(self.batch_size)))
@@ -297,8 +292,8 @@ class VOID_ImuAidedRGBSequence(Sequence):
             sample = self.dataset[index]
             im = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] ))/255,0,1).reshape(480,640,3)
             #iz = np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0/10.0,0,1).reshape(480,640)
-            iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth'+self.sd_suffix) ))/256.0*settings.DEPTH_SCALE,self.minDepth,self.maxDepth).reshape(480,640,1), maxDepth=self.maxDepth)
-            vm = np.array(Image.open(os.path.join(self.data_root, sample[0]).replace('image', 'validity_map'+self.sd_suffix)), dtype=np.float32).reshape(480,640,1)
+            iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*settings.DEPTH_SCALE,self.minDepth,self.maxDepth).reshape(480,640,1), maxDepth=self.maxDepth)
+            vm = np.array(Image.open(os.path.join(self.data_root, sample[0]).replace('image', 'validity_map')), dtype=np.float32).reshape(480,640,1)
             assert(np.all(np.unique(vm) == [0, 256]))
             vm[vm > 0] = 1
             gt = np.asarray(np.asarray(Image.open( self.data_root+"/"+sample[1] ))/256.0)
@@ -332,9 +327,6 @@ class VOID_InitPredSparseSequence(Sequence):
         self.maxDepth = settings.MAX_DEPTH*settings.DEPTH_SCALE #cm
         from sklearn.utils import shuffle
         self.dataset = shuffle(self.dataset, random_state=0)
-        self.sd_suffix = ''
-        if use_void_1500:
-            self.sd_suffix = '_1500'
 
     def __len__(self):
         return int(np.ceil(self.N / float(self.batch_size)))
@@ -347,7 +339,7 @@ class VOID_InitPredSparseSequence(Sequence):
             sample = self.dataset[index]
 
             x1 = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'prediction') ))/256.0*settings.DEPTH_SCALE,self.minDepth,self.maxDepth).reshape(480,640,1), maxDepth=self.maxDepth)
-            x2 = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth'+self.sd_suffix) ))/256.0*settings.DEPTH_SCALE,self.minDepth,self.maxDepth).reshape(480,640,1), maxDepth=self.maxDepth)
+            x2 = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*settings.DEPTH_SCALE,self.minDepth,self.maxDepth).reshape(480,640,1), maxDepth=self.maxDepth)
             y = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[1]) ))/256.0*settings.DEPTH_SCALE,self.minDepth,self.maxDepth).reshape(480,640,1), maxDepth=self.maxDepth)            
 
             batch_x1[i] = nyu_resize(x1, 240)
