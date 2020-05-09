@@ -24,7 +24,7 @@ def create_model(existing='', is_twohundred=False, is_halffeatures=True, channel
         elif is_twohundred:
             base_model = applications.DenseNet201(input_shape=(None, None, 3), include_top=False)
         else:
-            base_model = applications.DenseNet169(input_shape=(None, None, 3), include_top=False)
+            base_model = applications.DenseNet169(input_shape=(480, 640, 3), include_top=False)
 
         print('Base model loaded.')
 
@@ -39,6 +39,7 @@ def create_model(existing='', is_twohundred=False, is_halffeatures=True, channel
             decode_filters = int(int(base_model_output_shape[-1])/2)
         else:
             decode_filters = int(base_model_output_shape[-1])
+        print('Decode filters =', decode_filters)
 
         # Define upsampling layer
         def upproject(tensor, filters, name, concat_with):
