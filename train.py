@@ -31,6 +31,7 @@ parser.add_argument('--resnet50', dest='resnet50', action='store_true', help='Tr
 parser.add_argument('--dont-interpolate', default=False, dest='dont_interpolate', action='store_true', help='Use raw sparse depth maps.')
 parser.add_argument('--channels', type=int, default=3, help='Channels')
 parser.add_argument('--use-void-1500', default=False, dest='use_void_1500', action='store_true', help='Use VOID 1500 raw sparse depth maps.')
+parser.add_argument('--use-weigted-early-fusion', default=False, dest='use_weigted_early_fusion', action='store_true', help='Use weighted early fusion.')
 parser.add_argument('--use-very-late-fusion', default=False, dest='use_very_late_fusion', action='store_true', help='Concat branches at the very end (just before last conv layer).')
 
 args = parser.parse_args()
@@ -51,7 +52,8 @@ elif args.data == 'void' and args.voidmode == '5channel':
     model = create_model(existing=args.checkpoint, channels=5)
     channels = 5
 elif args.data == 'void' and args.voidmode == '4channel':
-    model = create_model(existing=args.checkpoint, channels=4)
+    if args.use_weigted_early_fusion: model = create_model_early(existing=args.checkpoint, channels=4)
+    else: model = create_model(existing=args.checkpoint, channels=4)
     channels = 4
 elif args.resnet50:  # if want a resnet model
     model = create_model_resnet(existing=args.checkpoint)
