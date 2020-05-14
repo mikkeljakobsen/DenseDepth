@@ -81,7 +81,7 @@ def get_nyu_callbacks(model, basemodel, train_generator, test_generator, test_se
 
     # Callback: save checkpoints
     callbacks.append(keras.callbacks.ModelCheckpoint(runPath + '/weights.{epoch:02d}-{val_loss:.2f}.hdf5', monitor='val_loss', 
-        verbose=1, save_best_only=False, save_weights_only=True, mode='min', period=5))
+        verbose=1, save_best_only=True, save_weights_only=False, mode='min', period=1))
 
     return callbacks
 
@@ -150,6 +150,6 @@ def get_void_callbacks(model, basemodel, train_generator, test_generator, test_s
 
     # Callback: save checkpoints
     callbacks.append(keras.callbacks.ModelCheckpoint(runPath + '/weights.{epoch:02d}-{val_loss:.2f}.hdf5', monitor='val_loss', 
-        verbose=1, save_best_only=False, save_weights_only=False, mode='min', period=4))
+        verbose=1, save_best_only=True, save_weights_only=False, mode='min', period=1))
 
     return callbacks
