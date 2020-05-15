@@ -55,10 +55,10 @@ def get_void_data(batch_size, void_data_path, use_void_1500=False):
             void_train.append([void_train_rgb[i], void_train_depth[i]])
     shape_rgb = (batch_size, 480, 640, 3)
     shape_depth = (batch_size, 240, 320, 1)
-    return void_train[:48414], void_train[48414:], shape_rgb, shape_depth
+    return void_train[:-1350], void_train[-1350:], shape_rgb, shape_depth
 
 def get_void_train_test_data(batch_size, void_data_path='/home/mikkel/data/void_release', mode='normal', channels=4, dont_interpolate=False, use_void_1500=False):
-    void_train, void_test, shape_rgb, shape_depth = get_void_data(batch_size, void_data_path, use_void_1500=False)
+    void_train, void_test, shape_rgb, shape_depth = get_void_data(batch_size, void_data_path, use_void_1500=use_void_1500)
     print('train set size:', len(void_train), ', val set size:', len(void_test))
     if mode == 'normal':
         train_generator = VOID_BasicAugmentRGBSequence(void_data_path, void_train, batch_size=batch_size, shape_rgb=shape_rgb, shape_depth=shape_depth)
@@ -261,6 +261,44 @@ class VOID_BasicRGBDSequence(Sequence):
             else:
                 batch_x[i] = np.stack([x[:,:,0], x[:,:,1], x[:,:,2], iz], axis=-1)
             batch_y[i] = nyu_resize(y, 240)
+
+            # DEBUG:
+            #self.policy.debug_img(batch_x[i], np.clip(DepthNorm(batch_y[i])/maxDepth,0,1), idx, i)
+        #exit()
+
+        return batch_x, batch_y
+
+    def get_sample_image(self, idx):
+        batch_x, batch_y = np.zeros( self.shape_rgbd ), np.zeros( self.shape_depth )
+        samples = [ ['void_1500/data/classroom6/image/1552696011.5523.png'],['void_1500/data/classroom6/ground_truth_orig/1552696011.5523.png'],\
+        ['void_1500/data/mechanical_lab3/image/1552096515.0227.png'],['void_1500/data/mechanical_lab3/ground_truth_orig/1552096515.0227.png'],\
+        ['void_1500/data/stairs/image/1552695287.0660.png'],['void_1500/data/stairs/ground_truth_orig/1552695287.0660.png'],\
+        ['void_1500/data/office3/image/1552625426.4194.png'],['void_1500/data/office3/ground_truth_orig/1552625426.4194.png'],\
+        ['void_1500/data/desktop2/image/1552625303.1627.png'],['void_1500/data/desktop2/ground_truth_orig/1552625303.1627.png'],\
+        ['void_1500/data/plants/image/1552695221.0711.png'],['void_1500/data/plants/ground_truth_orig/1552695221.0711.png'] ]
+        
+        i = 0
+        index = min(idx, 5)
+        sample = samples[index]
+        x = np.clip(np.asarray(Image.open( self.data_root+"/"+sample[0] )).reshape(480,640,3)/255,0,1)
+
+        #iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*100,10.0,1000.0), maxDepth=self.maxDepth)
+        if self.dont_interpolate:
+            iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'sparse_depth') ))/256.0*settings.DEPTH_SCALE, self.minDepth, self.maxDepth), maxDepth=self.maxDepth)
+        else:
+            iz = DepthNorm(np.clip(np.asarray(Image.open( os.path.join(self.data_root, sample[0]).replace('image', 'interp_depth') ))/256.0*settings.DEPTH_SCALE, self.minDepth, self.maxDepth), maxDepth=self.maxDepth)
+        vm = None
+        y = np.asarray(np.asarray(Image.open( self.data_root+"/"+sample[1] ))/256.0)
+        y = np.clip(y.reshape(480,640,1)*settings.DEPTH_SCALE, self.minDepth, self.maxDepth) # fill missing pixels and convert to cm
+        y = DepthNorm(y, maxDepth=self.maxDepth)
+        if self.channels == 5:
+            vm = np.array(Image.open(os.path.join(self.data_root, sample[0]).replace('image', 'validity_map')), dtype=np.float32)
+            assert(np.all(np.unique(vm) == [0, 256]))
+            vm[vm > 0] = 1
+            batch_x[i] = np.stack([x[:,:,0], x[:,:,1], x[:,:,2], iz, vm], axis=-1)
+        else:
+            batch_x[i] = np.stack([x[:,:,0], x[:,:,1], x[:,:,2], iz], axis=-1)
+        batch_y[i] = nyu_resize(y, 240)
 
             # DEBUG:
             #self.policy.debug_img(batch_x[i], np.clip(DepthNorm(batch_y[i])/maxDepth,0,1), idx, i)

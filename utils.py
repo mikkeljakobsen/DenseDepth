@@ -167,7 +167,7 @@ def load_test_data(test_data_zip_file='nyu_test.zip'):
 def load_void_test_data(void_data_path='/home/mikkel/data/void_release', channels=3, use_sparse_depth=False, dont_interpolate=False, use_void_1500=False):
     if use_void_1500:
         void_test_rgb_temp = list(line.strip() for line in open(void_data_path+'/void_1500/test_image.txt'))
-        void_test_depth_temp = list(line.strip() for line in open(void_data_path+'/void_1500/test_ground_truth.txt'))
+        void_test_depth_temp = list(line.strip().replace('ground_truth', 'ground_truth_orig') for line in open(void_data_path+'/void_1500/test_ground_truth.txt'))
     else:
         void_test_rgb_temp = list(line.strip() for line in open(void_data_path+'/void_150/test_image.txt'))
         void_test_depth_temp = list(line.strip() for line in open(void_data_path+'/void_150/test_ground_truth.txt'))

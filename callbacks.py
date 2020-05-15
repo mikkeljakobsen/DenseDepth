@@ -113,7 +113,7 @@ def get_void_callbacks(model, basemodel, train_generator, test_generator, test_s
 
                 for i in range(self.num_samples):
                     x_train, y_train = train_generator.__getitem__(self.train_idx[i], False)
-                    x_test, y_test = test_generator[self.test_idx[i]]
+                    x_test, y_test = test_generator.get_sample_image(i) #test_generator[self.test_idx[i]]
 
                     x_train, y_train = x_train[0], np.clip(DepthNorm(y_train[0], maxDepth=maxDepth), minDepth, maxDepth) / maxDepth 
                     x_test, y_test = x_test[0], np.clip(DepthNorm(y_test[0], maxDepth=maxDepth), minDepth, maxDepth) / maxDepth
