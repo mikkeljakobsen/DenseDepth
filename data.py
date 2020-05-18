@@ -272,10 +272,10 @@ class VOID_BasicRGBDSequence(Sequence):
         batch_x, batch_y = np.zeros( self.shape_rgbd ), np.zeros( self.shape_depth )
         samples = [ ('void_1500/data/classroom6/image/1552696011.5523.png', 'void_1500/data/classroom6/ground_truth_orig/1552696011.5523.png'),\
         ('void_1500/data/mechanical_lab3/image/1552096515.0227.png', 'void_1500/data/mechanical_lab3/ground_truth_orig/1552096515.0227.png'),\
-        ('void_1500/data/stairs4/image/1552695287.0660.png', 'void_1500/data/stairs/ground_truth_orig/1552695287.0660.png'),\
+        ('void_1500/data/stairs4/image/1552695287.0660.png', 'void_1500/data/stairs4/ground_truth_orig/1552695287.0660.png'),\
         ('void_1500/data/office3/image/1552625426.4194.png', 'void_1500/data/office3/ground_truth_orig/1552625426.4194.png'),\
         ('void_1500/data/desktop2/image/1552625303.1627.png', 'void_1500/data/desktop2/ground_truth_orig/1552625303.1627.png'),\
-        ('void_1500/data/plants4/image/1552695221.0711.png', 'void_1500/data/plants/ground_truth_orig/1552695221.0711.png') ]
+        ('void_1500/data/plants4/image/1552695221.0711.png', 'void_1500/data/plants4/ground_truth_orig/1552695221.0711.png') ]
         
         i = 0
         index = min(idx, 5)
