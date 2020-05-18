@@ -275,7 +275,7 @@ class VOID_BasicRGBDSequence(Sequence):
         ('void_1500/data/stairs4/image/1552695287.0660.png', 'void_1500/data/stairs4/ground_truth_orig/1552695287.0660.png'),\
         ('void_1500/data/office3/image/1552625426.4194.png', 'void_1500/data/office3/ground_truth_orig/1552625426.4194.png'),\
         ('void_1500/data/desktop2/image/1552625303.1627.png', 'void_1500/data/desktop2/ground_truth_orig/1552625303.1627.png'),\
-        ('void_1500/data/plants4/image/1552695221.0711.png', 'void_1500/data/plants4/ground_truth_orig/1552695221.0711.png') ]
+        ('void_1500/data/plants3/image/1552695221.0711.png', 'void_1500/data/plants3/ground_truth_orig/1552695221.0711.png') ]
         
         i = 0
         index = min(idx, 5)
