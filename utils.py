@@ -406,10 +406,13 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 image.save(path)
         #print("tested", (i+1)*bs, "out of", N, "test images")
 
-    predictions = np.stack(predictions, axis=0)
-    testSetDepths = np.stack(testSetDepths, axis=0)
+    #predictions = np.stack(predictions, axis=0)
+    #testSetDepths = np.stack(testSetDepths, axis=0)
 
-    e = compute_errors(testSetDepths, predictions)
+    e = []
+    for i in range(len(predictions)): e.append(compute_errors(testSetDepths[i], predictions[i]))
+    e = np.array(e).mean(0)
+    #e = compute_errors(testSetDepths, predictions)
 
     if verbose:
         print("{:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}".format('a1', 'a2', 'a3', 'rel', 'rmse', 'log_10', 'scinv', 'mae', 'i_mae', 'i_rmse', 'rmse_log'))
