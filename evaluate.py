@@ -25,6 +25,7 @@ parser.add_argument('--dont-interpolate', default=False, dest='dont_interpolate'
 parser.add_argument('--use-scaling-array', default=False, dest='use_scaling_array', action='store_true', help='If true, all predictions are scaled by a scaling array before evaluation.')
 parser.add_argument('--save', default=False, dest='save', action='store_true', help='Save all predictions.')
 parser.add_argument('--use-cpu', default=False, dest='use_cpu', action='store_true', help='Run on CPU.')
+parser.add_argument('--use-void-1500', default=False, dest='use_void_1500', action='store_true', help='Use VOID 1500 raw sparse depth maps.')
 args = parser.parse_args()
 
 if args.use_cpu: os.environ['CUDA_VISIBLE_DEVICES']=''
@@ -32,7 +33,7 @@ if args.use_cpu: os.environ['CUDA_VISIBLE_DEVICES']=''
 custom_objects = {'BilinearUpSampling2D': BilinearUpSampling2D, 'depth_loss_function': depth_loss_function}
 
 # Load model into GPU / CPU
-print('Loading model...')
+print('Loading model ', args.model ,'...')
 model = load_model(args.model, custom_objects=custom_objects, compile=False)
 
 # Load test data
@@ -49,7 +50,7 @@ elif(args.dataset == 'void-rgb-sparse'):
 elif(args.dataset == 'void-pred-sparse'):
 	test_set = load_void_pred_sparse_test_data()
 else:
-	test_set = load_void_test_data(use_sparse_depth=args.use_sparse_depth_scaling, dont_interpolate=args.dont_interpolate, channels=args.channels)
+	test_set = load_void_test_data(use_sparse_depth=args.use_sparse_depth_scaling, dont_interpolate=args.dont_interpolate, channels=args.channels, use_void_1500=args.use_void_1500)
 print('Test data loaded.\n')
 
 start = time.time()
