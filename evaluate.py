@@ -33,7 +33,7 @@ if args.use_cpu: os.environ['CUDA_VISIBLE_DEVICES']=''
 custom_objects = {'BilinearUpSampling2D': BilinearUpSampling2D, 'depth_loss_function': depth_loss_function}
 
 # Load model into GPU / CPU
-print('Loading model ', args.model ,'...')
+print('Loading model...')
 model = load_model(args.model, custom_objects=custom_objects, compile=False)
 
 # Load test data
@@ -54,7 +54,7 @@ else:
 print('Test data loaded.\n')
 
 start = time.time()
-print('Testing...')
+print('Testing... model', args.model)
 if args.dataset == 'void-rgb-sparse':
 	e = evaluate_rgb_sparse(model, test_set['rgb'], test_set['sparse_depth_and_vm'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=args.use_median_scaling)
 elif(args.dataset == 'void-pred-sparse'):
