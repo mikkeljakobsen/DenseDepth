@@ -5,7 +5,6 @@ import argparse
 from utils import load_void_imu_test_data, load_void_test_data, load_test_data, load_void_rgb_sparse_test_data, load_void_pred_sparse_test_data, load_custom_test_data
 # Kerasa / TensorFlow
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '5'
-os.environ['CUDA_VISIBLE_DEVICES']=''
 from keras.models import load_model
 from layers import BilinearUpSampling2D
 from loss import depth_loss_function
@@ -25,8 +24,10 @@ parser.add_argument('--use-sparse-depth-scaling', default=False, dest='use_spars
 parser.add_argument('--dont-interpolate', default=False, dest='dont_interpolate', action='store_true', help='Use raw sparse depth maps for refinement (dont interpolate).')
 parser.add_argument('--use-scaling-array', default=False, dest='use_scaling_array', action='store_true', help='If true, all predictions are scaled by a scaling array before evaluation.')
 parser.add_argument('--save', default=False, dest='save', action='store_true', help='Save all predictions.')
+parser.add_argument('--use-cpu', default=False, dest='use_cpu', action='store_true', help='Run on CPU.')
 args = parser.parse_args()
 
+if args.use_cpu: os.environ['CUDA_VISIBLE_DEVICES']=''
 # Custom object needed for inference and training
 custom_objects = {'BilinearUpSampling2D': BilinearUpSampling2D, 'depth_loss_function': depth_loss_function}
 
