@@ -5,6 +5,7 @@ import argparse
 from utils import load_void_imu_test_data, load_void_test_data, load_test_data, load_void_rgb_sparse_test_data, load_void_pred_sparse_test_data, load_custom_test_data
 # Kerasa / TensorFlow
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '5'
+os.environ['CUDA_VISIBLE_DEVICES']=''
 from keras.models import load_model
 from layers import BilinearUpSampling2D
 from loss import depth_loss_function
