@@ -313,7 +313,7 @@ def scale_invariant(gt, pr):
     return np.sqrt(np.sum(np.square(log_diff)) / num_pixels \
         - np.square(np.sum(log_diff)) / np.square(num_pixels))
 
-def compute_errors(gt, pred, min_depth=settings.MIN_DEPTH, max_depth=settings.MAX_DEPTH):
+def compute_errors(gt, pred, min_depth=settings.MIN_DEPTH_EVAL, max_depth=settings.MAX_DEPTH_EVAL):
     if isinstance(pred, list):
         scinv_list = []
         for i in range(len(gt)):
