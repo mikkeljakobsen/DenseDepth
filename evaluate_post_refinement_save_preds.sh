@@ -8,6 +8,7 @@ python evaluate.py \
 --use-cpu \
 --save \
 --model-name void-rgb \
+--use-void-1500 \
 --model /home/mikkel/final_models/void_rgb/1589053397-n12104-e20-bs4-lr0.0001-void-nyu/model.h5
 
 python evaluate.py \
@@ -17,6 +18,7 @@ python evaluate.py \
 --use-median-scaling \
 --save \
 --model-name void-rgb-global-gt-scaling \
+--use-void-1500 \
 --model /home/mikkel/final_models/void_rgb/1589053397-n12104-e20-bs4-lr0.0001-void-nyu/model.h5
 
 python evaluate.py \
@@ -27,6 +29,7 @@ python evaluate.py \
 --use-sparse-depth-scaling \
 --save \
 --model-name void-rgb-global-iD-scaling \
+--use-void-1500 \
 --model /home/mikkel/final_models/void_rgb/1589053397-n12104-e20-bs4-lr0.0001-void-nyu/model.h5
 
 python evaluate.py \
@@ -37,6 +40,7 @@ python evaluate.py \
 --use-sparse-depth-scaling \
 --use-scaling-array \
 --model-name void-rgb-local-iD-scaling \
+--use-void-1500 \
 --model /home/mikkel/final_models/void_rgb/1589053397-n12104-e20-bs4-lr0.0001-void-nyu/model.h5
 
 #python evaluate.py \
