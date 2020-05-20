@@ -392,19 +392,20 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
             predictions.append(prediction)
             testSetDepths.append(true_y[j])
             if save_pred:
-                import matplotlib.cm as plt
+                import matplotlib.pyplot as plt
                 from skimage.transform import resize
                 path = "/home/mikkel/samples/" + model_name + "/pred_viz_all/" + str((i+1)*(j+1))+".png"
                 save_img(Image.fromarray(np.uint32(prediction.copy()*256.0), mode='I'), path.replace('pred_viz_all','pred_raw_depth'))
                 plasma = plt.get_cmap('plasma')
-                plt.set_clim(vmin=0.0, vmax=5.0)
                 h, w = true_y[j].shape[0], true_y[j].shape[1]
                 #rgb = resize(x[j,:,:,:3], (h,w), preserve_range=True, mode='reflect', anti_aliasing=True)
-                gt, pr = true_y[j].copy(), prediction.copy()
-                gt = plasma(gt/10)[:,:,:3]
-                pr = plasma(predict(model, x[j]/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE)[0,:,:,0])[:,:,:3]
-                pr = resize(pr, (x[j].shape[0], x[j].shape[1]), order=1, preserve_range=True, mode='reflect', anti_aliasing=True )
-                pr = pr[crop[0]:crop[1]+1, crop[2]:crop[3]+1]
+                gt = np.clip(true_y[j].copy(), 0.0, settings.MAX_DEPTH_EVAL)/settings.MAX_DEPTH_EVAL
+                pr = np.clip(prediction.copy(), 0.0, settings.MAX_DEPTH_EVAL)/settings.MAX_DEPTH_EVAL
+                gt = plasma(gt)[:,:,:3]
+                pr = plasma(predict)[:,:,:3]
+                #pr = plasma(predict(model, x[j]/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE)[0,:,:,0])[:,:,:3]
+                #pr = resize(pr, (x[j].shape[0], x[j].shape[1]), order=1, preserve_range=True, mode='reflect', anti_aliasing=True )
+                #pr = pr[crop[0]:crop[1]+1, crop[2]:crop[3]+1]
                 img = x[j,crop[0]:crop[1]+1, crop[2]:crop[3]+1,:3].copy()
                 img = resize(img, (h, w), preserve_range=True, mode='reflect', anti_aliasing=True )
                 gt, pr = gt*255, pr*255
