@@ -392,7 +392,7 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
             predictions.append(prediction)
             testSetDepths.append(true_y[j])
             if save_pred:
-                import matplotlib.pyplot as plt
+                import matplotlib.cm as plt
                 from skimage.transform import resize
                 path = "/home/mikkel/samples/" + model_name + "/pred_viz_all/" + str((i+1)*(j+1))+".png"
                 save_img(Image.fromarray(np.uint32(prediction.copy()*256.0), mode='I'), path.replace('pred_viz_all','pred_raw_depth'))
