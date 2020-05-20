@@ -394,8 +394,10 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
             if save_pred:
                 import matplotlib.pyplot as plt
                 from skimage.transform import resize
-                z = np.uint32(z*256.0)
+                path = "/home/mikkel/samples/" + model_name + "/pred_viz_all/" + str((i+1)*(j+1))+".jpg"
+                z = np.uint32(prediction.copy()*256.0)
                 z = Image.fromarray(z, mode='I')
+                save_img(z, path.replace('pred_viz_all','pred_raw_depth'))
                 z.save(path)
                 plasma = plt.get_cmap('plasma')
                 h, w = true_y[j].shape[0], true_y[j].shape[1]
@@ -411,11 +413,7 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 output_img = np.vstack([img, gt, pr])
                 height, width, channel = output_img.shape
                 image = Image.fromarray(np.uint8(output_img))
-                path = "/home/mikkel/samples/" + model_name + "/pred_viz_all/" + str((i+1)*(j+1))+".jpg"
                 save_img(image, path)
-                z = np.uint32(prediction.copy()*256.0)
-                z = Image.fromarray(z, mode='I')
-                save_img(z, path.replace('pred_viz_all','pred_raw_depth'))
                 save_img(gt, path.replace('pred_viz_all','pred_viz_depth'))
         #print("tested", (i+1)*bs, "out of", N, "test images")
 
