@@ -352,7 +352,7 @@ def save_img(image, path):
 
 def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_scaling=False, interp_depth=None, use_scaling_array=False, save_pred=False, model_name='output'):
     N = len(rgb)
-
+    count = 0
     bs = batch_size
 
     predictions = []
@@ -400,7 +400,10 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
             if save_pred:
                 import matplotlib.pyplot as plt
                 from skimage.transform import resize
-                path = "/home/mikkel/samples/" + model_name + "/pred_viz_all/" + str((i+1)*(j+1))+".png"
+                from scipy import ndimage
+                path = "/home/mikkel/samples/" + model_name + "/pred_viz_all/" + str(count) +".png"
+                print(path)
+                count = count+1
                 save_img(Image.fromarray(np.uint32(prediction.copy()*256.0), mode='I'), path.replace('pred_viz_all','pred_raw_depth'))
                 jet = plt.get_cmap('jet')
                 jet.set_bad(color='black')
@@ -408,10 +411,20 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 #rgb = resize(x[j,:,:,:3], (h,w), preserve_range=True, mode='reflect', anti_aliasing=True)
                 gt = np.clip(true_y[j].copy(), 0.0, settings.MAX_DEPTH_EVAL)/settings.MAX_DEPTH_EVAL
                 gt[gt==0.0] = np.nan
-                pr = np.clip(prediction.copy(), 0.0, settings.MAX_DEPTH_EVAL)/settings.MAX_DEPTH_EVAL
-                pr[gt==0.0] = np.nan
                 gt = jet(gt)[:,:,:3]
+                pr = np.clip(prediction.copy(), 0.0, settings.MAX_DEPTH_EVAL)/settings.MAX_DEPTH_EVAL
+                pr[pr==0.0] = np.nan
                 pr = jet(pr)[:,:,:3]
+
+                if interp_depth is not None:
+                    sd = np.clip(sparse_depth[j].copy(), 0.0, settings.MAX_DEPTH_EVAL)/settings.MAX_DEPTH_EVAL
+                    sd = ndimage.grey_dilation(np.uint8(sd*255), size=(3, 3)) / 255.0
+                    sd[sd==0.0] = np.nan
+                    sd = jet(sd)[:,:,:3]
+                    sd = sd*255
+                    sd = Image.fromarray(np.uint8(sd))                    
+                    save_img(sd, path.replace('pred_viz_all','pred_viz_interp_depth'))
+                    
                 #pr = jet(predict(model, x[j]/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE)[0,:,:,0])[:,:,:3]
                 #pr = resize(pr, (x[j].shape[0], x[j].shape[1]), order=1, preserve_range=True, mode='reflect', anti_aliasing=True )
                 #pr = pr[crop[0]:crop[1]+1, crop[2]:crop[3]+1]
@@ -421,7 +434,9 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 output_img = np.vstack([img, gt, pr])
                 height, width, channel = output_img.shape
                 save_img(Image.fromarray(np.uint8(output_img)), path)
-                save_img(Image.fromarray(np.uint8(gt)), path.replace('pred_viz_all','pred_viz_depth'))
+                save_img(Image.fromarray(np.uint8(pr)), path.replace('pred_viz_all','pred_viz_depth'))
+                save_img(Image.fromarray(np.uint8(gt)), path.replace('pred_viz_all','pred_viz_gt'))
+                save_img(Image.fromarray(np.uint8(img)), path.replace('pred_viz_all','orig_image'))
         #print("tested", (i+1)*bs, "out of", N, "test images")
 
     #predictions = np.stack(predictions, axis=0)
