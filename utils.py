@@ -58,7 +58,7 @@ def display_images(outputs, inputs=None, gt=None, is_colormap=True, is_rescale=T
     import skimage
     from skimage.transform import resize
 
-    plasma = plt.get_cmap('plasma')
+    jet = plt.get_cmap('jet')
 
     shape = (outputs[0].shape[0], outputs[0].shape[1], 3)
     
@@ -82,7 +82,7 @@ def display_images(outputs, inputs=None, gt=None, is_colormap=True, is_rescale=T
             if is_rescale:
                 rescaled = rescaled - np.min(rescaled)
                 rescaled = rescaled / np.max(rescaled)
-            imgs.append(plasma(rescaled)[:,:,:3])
+            imgs.append(jet(rescaled)[:,:,:3])
         else:
             imgs.append(to_multichannel(outputs[i]))
 
@@ -210,9 +210,9 @@ def load_void_test_data(void_data_path='/home/mikkel/data/void_release', channel
 
     interp_depths = []
     if use_sparse_depth:
-        for interp_depth_path in void_test_depth:
-            if dont_interpolate: img = np.asarray(Image.open( os.path.join(void_data_path, interp_depth_path).replace('ground_truth', 'sparse_depth') ))/256.0
-            else: img = np.asarray(Image.open( os.path.join(void_data_path, interp_depth_path).replace('ground_truth', 'interp_depth') ))/256.0
+        for interp_depth_path in void_test_rgb:
+            if dont_interpolate: img = np.asarray(Image.open( os.path.join(void_data_path, interp_depth_path).replace('image', 'sparse_depth') ))/256.0
+            else: img = np.asarray(Image.open( os.path.join(void_data_path, interp_depth_path).replace('image', 'interp_depth') ))/256.0
             interp_depths.append(img)
         inds = np.arange(len(interp_depths)).tolist()
         interp_depths = np.array([interp_depths[i] for i in inds])
@@ -402,14 +402,17 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 from skimage.transform import resize
                 path = "/home/mikkel/samples/" + model_name + "/pred_viz_all/" + str((i+1)*(j+1))+".png"
                 save_img(Image.fromarray(np.uint32(prediction.copy()*256.0), mode='I'), path.replace('pred_viz_all','pred_raw_depth'))
-                plasma = plt.get_cmap('plasma')
-                h, w = true_y[j].shape[0], true_y[j].shape[1]
+                jet = plt.get_cmap('jet')
+                jet.set_bad(color='black')
+                #h, w = true_y[j].shape[0], true_y[j].shape[1]
                 #rgb = resize(x[j,:,:,:3], (h,w), preserve_range=True, mode='reflect', anti_aliasing=True)
                 gt = np.clip(true_y[j].copy(), 0.0, settings.MAX_DEPTH_EVAL)/settings.MAX_DEPTH_EVAL
+                gt[gt==0.0] = np.nan
                 pr = np.clip(prediction.copy(), 0.0, settings.MAX_DEPTH_EVAL)/settings.MAX_DEPTH_EVAL
-                gt = plasma(gt)[:,:,:3]
-                pr = plasma(pr)[:,:,:3]
-                #pr = plasma(predict(model, x[j]/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE)[0,:,:,0])[:,:,:3]
+                pr[gt==0.0] = np.nan
+                gt = jet(gt)[:,:,:3]
+                pr = jet(pr)[:,:,:3]
+                #pr = jet(predict(model, x[j]/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE)[0,:,:,0])[:,:,:3]
                 #pr = resize(pr, (x[j].shape[0], x[j].shape[1]), order=1, preserve_range=True, mode='reflect', anti_aliasing=True )
                 #pr = pr[crop[0]:crop[1]+1, crop[2]:crop[3]+1]
                 img = x[j,crop[0]:crop[1]+1, crop[2]:crop[3]+1,:3].copy()
