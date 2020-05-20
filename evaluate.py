@@ -15,6 +15,7 @@ import numpy as np
 # Argument Parser
 parser = argparse.ArgumentParser(description='High Quality Monocular Depth Estimation via Transfer Learning')
 parser.add_argument('--model', default='nyu.h5', type=str, help='Trained Keras model file.')
+parser.add_argument('--model-name', default='None', dest='model_name', type=str, help='Model name (used for saving).')
 parser.add_argument('--dataset', default='void', type=str, help='Test dataset.')
 parser.add_argument('--path', default='/home/mikkel/data/void_release/void_150/data/desktop2', type=str, help='Path to test dataset.')
 parser.add_argument('--channels', default=3, type=int, help='Number of channels for VOID dataset.')
@@ -53,6 +54,8 @@ else:
 	test_set = load_void_test_data(use_sparse_depth=args.use_sparse_depth_scaling, dont_interpolate=args.dont_interpolate, channels=args.channels, use_void_1500=args.use_void_1500)
 print('Test data loaded.\n')
 
+if args.model_name == 'None': model_name = os.path.basename(os.path.dirname(args.model))
+else: model_name = args.model_name
 start = time.time()
 print('Testing... model', args.model)
 if args.dataset == 'void-rgb-sparse':
@@ -60,9 +63,9 @@ if args.dataset == 'void-rgb-sparse':
 elif(args.dataset == 'void-pred-sparse'):
 	e = evaluate_pred_sparse(model, test_set['init_preds'], test_set['sparse_depths'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=args.use_median_scaling)
 elif args.use_sparse_depth_scaling:
-	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=True, interp_depth=test_set['interp_depth'], use_scaling_array=args.use_scaling_array, save_pred=args.save, model_name=os.path.basename(os.path.dirname(args.model)))
+	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=True, interp_depth=test_set['interp_depth'], use_scaling_array=args.use_scaling_array, save_pred=args.save, model_name=model_name)
 else:
-	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=args.use_median_scaling, save_pred=args.save, model_name=os.path.basename(os.path.dirname(args.model)))
+	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=args.use_median_scaling, save_pred=args.save, model_name=model_name)
 #e = evaluate(model, rgb, depth, crop, batch_size=6)
 
 end = time.time()
