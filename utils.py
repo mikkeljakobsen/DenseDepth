@@ -384,12 +384,12 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
             if use_median_scaling:
                 if interp_depth is not None:
                     if use_scaling_array: 
-                        scale = compute_scaling_array(sparse_depth[j], prediction)
+                        scale_array = compute_scaling_array(sparse_depth[j], prediction)
                         prediction = prediction*scale_array
                         print("interp depth average scale", np.mean(scale_array))
                     else: 
-                        scale_array = compute_scaling_factor(sparse_depth[j], prediction)
-                        prediction = prediction*scale                    
+                        scale = compute_scaling_factor(sparse_depth[j], prediction)
+                        prediction = prediction*scale                   
                         print("sparse depth scaling factor", scale)
                 else:
                     scale = compute_scaling_factor(true_y[j], prediction)
