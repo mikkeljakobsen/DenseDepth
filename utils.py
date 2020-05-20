@@ -121,10 +121,12 @@ def compute_scaling_array(gt, pr, min_depth=settings.MIN_DEPTH, max_depth=settin
     query_coord = np.stack([query_row_idx.ravel(), query_col_idx.ravel()], axis=1)
     return interpolator(query_coord).reshape([rows, cols])
 
-def load_custom_test_data(path, channels=3, use_sparse_depth=False, dont_interpolate=False, gt_divider=1000.0):
+def load_custom_test_data(path, channels=3, use_sparse_depth=False, dont_interpolate=False, gt_divider=1000.0, use_void_1500=False):
     images, depths, interp_depths = [], [], []
-    for rgb_path in sorted(glob.glob(os.path.join(path, "interp_depth/*.png"))):
-        img = np.asarray(Image.open( rgb_path.replace('interp_depth', 'image') )).reshape(480,640,3)
+    suffix = ''
+    #if use_void_1500: suffix = '_1500'
+    for rgb_path in sorted(glob.glob(os.path.join(path, 'interp_depth'+suffix+'/*.png'))):
+        img = np.asarray(Image.open( rgb_path.replace('interp_depth'+suffix, 'image') )).reshape(480,640,3)
         if channels > 3:
             if dont_interpolate:
                 iz = DepthNorm(np.clip(np.asarray(Image.open( rgb_path.replace('interp_depth', 'sparse_depth') ))/256.0*settings.DEPTH_SCALE, settings.MIN_DEPTH*settings.DEPTH_SCALE, settings.MAX_DEPTH*settings.DEPTH_SCALE), maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE)*255
@@ -135,7 +137,7 @@ def load_custom_test_data(path, channels=3, use_sparse_depth=False, dont_interpo
                 img = np.stack([img[:,:,0], img[:,:,1], img[:,:,2], iz, vm], axis=-1)
             else:
                 img = np.stack([img[:,:,0], img[:,:,1], img[:,:,2], iz], axis=-1)
-        depth = np.asarray(Image.open( rgb_path.replace('interp_depth', 'ground_truth') ), dtype=np.float32)/gt_divider # convert from mm to m
+        depth = np.asarray(Image.open( rgb_path.replace('interp_depth'+suffix, 'ground_truth') ), dtype=np.float32)/gt_divider # convert from mm to m
         images.append(img)
         depths.append(depth)
 
@@ -343,7 +345,12 @@ def compute_errors(gt, pred, min_depth=settings.MIN_DEPTH_EVAL, max_depth=settin
 
     return a1, a2, a3, abs_rel, rmse, log_10, scinv, mae, i_mae, i_rmse, rmse_log
 
-def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_scaling=False, interp_depth=None, use_scaling_array=False, save_pred=False):
+def save_img(image, path):
+    if not os.path.exists(os.path.dirname(path)):
+        os.makedirs(os.path.dirname(path))
+    image.save(path)
+
+def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_scaling=False, interp_depth=None, use_scaling_array=False, save_pred=False, model_name='output'):
     N = len(rgb)
 
     bs = batch_size
@@ -387,6 +394,9 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
             if save_pred:
                 import matplotlib.pyplot as plt
                 from skimage.transform import resize
+                z = np.uint32(z*256.0)
+                z = Image.fromarray(z, mode='I')
+                z.save(path)
                 plasma = plt.get_cmap('plasma')
                 h, w = true_y[j].shape[0], true_y[j].shape[1]
                 #rgb = resize(x[j,:,:,:3], (h,w), preserve_range=True, mode='reflect', anti_aliasing=True)
@@ -397,13 +407,16 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 pr = pr[crop[0]:crop[1]+1, crop[2]:crop[3]+1]
                 img = x[j,crop[0]:crop[1]+1, crop[2]:crop[3]+1,:3].copy()
                 img = resize(img, (h, w), preserve_range=True, mode='reflect', anti_aliasing=True )
-                output_img = np.vstack([img, gt*255, pr*255])
+                gt, pr = gt*255, pr*255
+                output_img = np.vstack([img, gt, pr])
                 height, width, channel = output_img.shape
                 image = Image.fromarray(np.uint8(output_img))
-                path = "/home/mikkel/output_pred/"+str((i+1)*(j+1))+".jpg"
-                if not os.path.exists(os.path.dirname(path)):
-                    os.makedirs(os.path.dirname(path))
-                image.save(path)
+                path = "/home/mikkel/samples/" + model_name + "/pred_viz_all/" + str((i+1)*(j+1))+".jpg"
+                save_img(image, path)
+                z = np.uint32(prediction.copy()*256.0)
+                z = Image.fromarray(z, mode='I')
+                save_img(z, path.replace('pred_viz_all','pred_raw_depth'))
+                save_img(gt, path.replace('pred_viz_all','pred_viz_depth'))
         #print("tested", (i+1)*bs, "out of", N, "test images")
 
     #predictions = np.stack(predictions, axis=0)
