@@ -396,7 +396,7 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 from skimage.transform import resize
                 path = "/home/mikkel/samples/" + model_name + "/pred_viz_all/" + str((i+1)*(j+1))+".png"
                 save_img(Image.fromarray(np.uint32(prediction.copy()*256.0), mode='I'), path.replace('pred_viz_all','pred_raw_depth'))
-                plasma = plt.get_cmap('plasma')
+                plasma = plt.get_cmap('plasma', vmin=0.0, vmax=5.0)
                 h, w = true_y[j].shape[0], true_y[j].shape[1]
                 #rgb = resize(x[j,:,:,:3], (h,w), preserve_range=True, mode='reflect', anti_aliasing=True)
                 gt, pr = true_y[j].copy(), prediction.copy()
