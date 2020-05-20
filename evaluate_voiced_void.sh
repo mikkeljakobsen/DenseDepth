@@ -86,12 +86,6 @@ python evaluate.py \
 --dataset void \
 --channels 4 \
 --use-cpu \
---model /home/mikkel/final_models/void_rgbd-150/1588355073-n24207-e29-bs2-lr0.0001-void-two-branch-two-encoders-imagenet-3+1-iD-with-depthnorm/model.h5
-
-python evaluate.py \
---dataset void \
---channels 4 \
---use-cpu \
 --model /home/mikkel/final_models/void_rgbd-150/1588180820-n24207-e6-bs2-lr0.0001-void-two-branch-imagenet-iD-with-depthnorm/model.h5
 
 python evaluate.py \
