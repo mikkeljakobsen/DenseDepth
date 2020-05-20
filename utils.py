@@ -404,7 +404,7 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 save_img(Image.fromarray(np.uint32(prediction.copy()*256.0), mode='I'), path.replace('pred_viz_all','pred_raw_depth'))
                 jet = plt.get_cmap('jet')
                 jet.set_bad(color='black')
-                #h, w = true_y[j].shape[0], true_y[j].shape[1]
+                h, w = true_y[j].shape[0], true_y[j].shape[1]
                 #rgb = resize(x[j,:,:,:3], (h,w), preserve_range=True, mode='reflect', anti_aliasing=True)
                 gt = np.clip(true_y[j].copy(), 0.0, settings.MAX_DEPTH_EVAL)/settings.MAX_DEPTH_EVAL
                 gt[gt==0.0] = np.nan
