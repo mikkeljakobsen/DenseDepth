@@ -2,24 +2,24 @@
 
 export CUDA_VISIBLE_DEVICES=0
 #VOID RGB
-python evaluate.py \
---dataset void \
---channels 3 \
---use-cpu \
---save \
---model-name void-rgb \
---use-void-1500 \
---model /home/mikkel/final_models/void_rgb/1589053397-n12104-e20-bs4-lr0.0001-void-nyu/model.h5
-
-python evaluate.py \
---dataset void \
---channels 3 \
---use-cpu \
---use-median-scaling \
---save \
---model-name void-rgb-global-gt-scaling \
---use-void-1500 \
---model /home/mikkel/final_models/void_rgb/1589053397-n12104-e20-bs4-lr0.0001-void-nyu/model.h5
+#python evaluate.py \
+#--dataset void \
+#--channels 3 \
+#--use-cpu \
+#--save \
+#--model-name void-rgb \
+#--use-void-1500 \
+#--model /home/mikkel/final_models/void_rgb/1589053397-n12104-e20-bs4-lr0.0001-void-nyu/model.h5
+#
+#python evaluate.py \
+#--dataset void \
+#--channels 3 \
+#--use-cpu \
+#--use-median-scaling \
+#--save \
+#--model-name void-rgb-global-gt-scaling \
+#--use-void-1500 \
+#--model /home/mikkel/final_models/void_rgb/1589053397-n12104-e20-bs4-lr0.0001-void-nyu/model.h5
 
 python evaluate.py \
 --dataset void \
