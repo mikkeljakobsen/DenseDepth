@@ -402,7 +402,7 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 gt = np.clip(true_y[j].copy(), 0.0, settings.MAX_DEPTH_EVAL)/settings.MAX_DEPTH_EVAL
                 pr = np.clip(prediction.copy(), 0.0, settings.MAX_DEPTH_EVAL)/settings.MAX_DEPTH_EVAL
                 gt = plasma(gt)[:,:,:3]
-                pr = plasma(predict)[:,:,:3]
+                pr = plasma(pr)[:,:,:3]
                 #pr = plasma(predict(model, x[j]/255, minDepth=settings.MIN_DEPTH*settings.DEPTH_SCALE, maxDepth=settings.MAX_DEPTH*settings.DEPTH_SCALE)[0,:,:,0])[:,:,:3]
                 #pr = resize(pr, (x[j].shape[0], x[j].shape[1]), order=1, preserve_range=True, mode='reflect', anti_aliasing=True )
                 #pr = pr[crop[0]:crop[1]+1, crop[2]:crop[3]+1]
