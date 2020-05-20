@@ -412,9 +412,8 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 gt, pr = gt*255, pr*255
                 output_img = np.vstack([img, gt, pr])
                 height, width, channel = output_img.shape
-                image = Image.fromarray(np.uint8(output_img))
-                save_img(image, path)
-                save_img(gt, path.replace('pred_viz_all','pred_viz_depth'))
+                save_img(Image.fromarray(np.uint8(output_img)), path)
+                save_img(Image.fromarray(np.uint8(gt)), path.replace('pred_viz_all','pred_viz_depth'))
         #print("tested", (i+1)*bs, "out of", N, "test images")
 
     #predictions = np.stack(predictions, axis=0)
