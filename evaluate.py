@@ -60,9 +60,9 @@ if args.dataset == 'void-rgb-sparse':
 elif(args.dataset == 'void-pred-sparse'):
 	e = evaluate_pred_sparse(model, test_set['init_preds'], test_set['sparse_depths'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=args.use_median_scaling)
 elif args.use_sparse_depth_scaling:
-	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=True, interp_depth=test_set['interp_depth'], use_scaling_array=args.use_scaling_array, save_pred=args.save, model_name=os.path.basename(args.model))
+	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=True, interp_depth=test_set['interp_depth'], use_scaling_array=args.use_scaling_array, save_pred=args.save, model_name=os.path.dirname(args.model))
 else:
-	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=args.use_median_scaling, save_pred=args.save, model_name=os.path.basename(args.model))
+	e = evaluate(model, test_set['rgb'], test_set['depth'], test_set['crop'], batch_size=6, verbose=True, use_median_scaling=args.use_median_scaling, save_pred=args.save, model_name=os.path.dirname(args.model))
 #e = evaluate(model, rgb, depth, crop, batch_size=6)
 
 end = time.time()
