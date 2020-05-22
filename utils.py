@@ -101,7 +101,6 @@ def save_images(filename, outputs, inputs=None, gt=None, is_colormap=True, is_re
 def compute_scaling_factor(gt, pr, min_depth=settings.MIN_DEPTH, max_depth=settings.MAX_DEPTH):
     gt = np.array(gt, dtype=np.float64).reshape(-1)
     pr = np.array(pr, dtype=np.float64).reshape(-1)
-
     # only use valid depth values
     v = (gt > min_depth) & (gt < max_depth)
     return np.median(gt[v] / pr[v])
@@ -110,7 +109,8 @@ def compute_scaling_array(gt, pr, min_depth=settings.MIN_DEPTH, max_depth=settin
     gt = np.array(gt, dtype=np.float64)
     pr = np.array(pr, dtype=np.float64)
     rows, cols = gt.shape
-    data_row_idx, data_col_idx = np.where((gt > min_depth) & (gt < max_depth))
+    v = (gt > min_depth) & (gt < max_depth) & (np.random.random(gt.shape) < 0.05)
+    data_row_idx, data_col_idx = np.where(v)
     scale_values = gt[data_row_idx, data_col_idx] / pr[data_row_idx, data_col_idx]
     # Perform linear interpolation in log space
     interpolator = LinearNDInterpolator(
@@ -213,7 +213,7 @@ def load_void_test_data(void_data_path='/home/mikkel/data/void_release', channel
         for interp_depth_path in void_test_rgb:
             if dont_interpolate: img = np.asarray(Image.open( os.path.join(void_data_path, interp_depth_path).replace('image', 'sparse_depth') ))/256.0
             else: img = np.asarray(Image.open( os.path.join(void_data_path, interp_depth_path).replace('image', 'interp_depth') ))/256.0
-            interp_depths.append(img)
+            interp_depths.append(img) 
         inds = np.arange(len(interp_depths)).tolist()
         interp_depths = np.array([interp_depths[i] for i in inds])
     return {'rgb':images, 'depth':depths, 'interp_depth':interp_depths, 'crop': [20, 459, 24, 615]}#[0, 480, 0, 640]}
@@ -357,6 +357,7 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
 
     predictions = []
     testSetDepths = []
+    sparseDepths = []
     
     for i in range(N//bs):    
         x = rgb[(i)*bs:(i+1)*bs,:,:,:]
@@ -377,6 +378,7 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
         if interp_depth is not None:
             sparse_depth = interp_depth[(i)*bs:(i+1)*bs,:,:]
             sparse_depth = sparse_depth[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
+            sparseDepths.append(sparse_depth)
         
         # Compute errors per image in batch
         for j in range(len(true_y)):
@@ -384,7 +386,8 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
             if use_median_scaling:
                 if interp_depth is not None:
                     if use_scaling_array: 
-                        scale_array = compute_scaling_array(sparse_depth[j], prediction)
+                        #scale_array = compute_scaling_array(sparse_depth[j], prediction)
+                        scale_array = compute_scaling_array(true_y[j], prediction)
                         prediction = prediction*scale_array
                         print("interp depth average scale", np.mean(scale_array))
                     else: 
@@ -402,7 +405,7 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
                 from skimage.transform import resize
                 from scipy import ndimage
                 path = "/home/mikkel/samples/" + model_name + "/pred_viz_all/" + str(count) +".png"
-                print(path)
+                #print(path)
                 count = count+1
                 save_img(Image.fromarray(np.uint32(prediction.copy()*256.0), mode='I'), path.replace('pred_viz_all','pred_raw_depth'))
                 jet = plt.get_cmap('jet')
@@ -445,6 +448,11 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
     e = []
     for i in range(len(predictions)): e.append(compute_errors(testSetDepths[i], predictions[i]))
     e = np.array(e).mean(0)
+
+    e22 = []
+    for i in range(len(predictions)): e2.append(compute_errors(testSetDepths[i], sparseDepths[i]))
+    e2 = np.array(e2).mean(0)
+    print("sd errors:", e2)
     #e = compute_errors(testSetDepths, predictions)
 
     if verbose:
