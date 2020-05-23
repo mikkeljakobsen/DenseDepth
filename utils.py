@@ -109,7 +109,7 @@ def compute_scaling_array(gt, pr, min_depth=settings.MIN_DEPTH, max_depth=settin
     gt = np.array(gt, dtype=np.float64)
     pr = np.array(pr, dtype=np.float64)
     rows, cols = gt.shape
-    v = (gt > min_depth) & (gt < max_depth) & (np.random.random(gt.shape) < 0.05)
+    v = (gt > min_depth) & (gt < max_depth)# & (np.random.random(gt.shape) < 0.05)
     data_row_idx, data_col_idx = np.where(v)
     scale_values = gt[data_row_idx, data_col_idx] / pr[data_row_idx, data_col_idx]
     # Perform linear interpolation in log space
@@ -357,7 +357,6 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
 
     predictions = []
     testSetDepths = []
-    sparseDepths = []
     
     for i in range(N//bs):    
         x = rgb[(i)*bs:(i+1)*bs,:,:,:]
@@ -378,7 +377,6 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
         if interp_depth is not None:
             sparse_depth = interp_depth[(i)*bs:(i+1)*bs,:,:]
             sparse_depth = sparse_depth[:,crop[0]:crop[1]+1, crop[2]:crop[3]+1]
-            sparseDepths.append(sparse_depth)
         
         # Compute errors per image in batch
         for j in range(len(true_y)):
@@ -386,8 +384,8 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
             if use_median_scaling:
                 if interp_depth is not None:
                     if use_scaling_array: 
-                        #scale_array = compute_scaling_array(sparse_depth[j], prediction)
-                        scale_array = compute_scaling_array(true_y[j], prediction)
+                        scale_array = compute_scaling_array(sparse_depth[j], prediction)
+                        #scale_array = compute_scaling_array(true_y[j], prediction)
                         prediction = prediction*scale_array
                         print("interp depth average scale", np.mean(scale_array))
                     else: 
@@ -448,13 +446,6 @@ def evaluate(model, rgb, depth, crop, batch_size=6, verbose=False, use_median_sc
     e = []
     for i in range(len(predictions)): e.append(compute_errors(testSetDepths[i], predictions[i]))
     e = np.array(e).mean(0)
-
-    e22 = []
-    for i in range(len(predictions)): e2.append(compute_errors(testSetDepths[i], sparseDepths[i]))
-    e2 = np.array(e2).mean(0)
-    print("sd errors:", e2)
-    #e = compute_errors(testSetDepths, predictions)
-
     if verbose:
         print("{:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}, {:>10}".format('a1', 'a2', 'a3', 'rel', 'rmse', 'log_10', 'scinv', 'mae', 'i_mae', 'i_rmse', 'rmse_log'))
         print("{:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}, {:10.4f}".format(e[0],e[1],e[2],e[3],e[4],e[5],e[6],e[7],e[8],e[9],e[10]))
